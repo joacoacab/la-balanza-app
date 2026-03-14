@@ -3,6 +3,7 @@ import { useAuth } from './auth/useAuth'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import NuevaCompra from './pages/NuevaCompra'
+import Cortes from './pages/Cortes'
 
 function PrivateRoute({ children }) {
   const { user } = useAuth()
@@ -27,6 +28,14 @@ export default function App() {
           element={
             <PrivateRoute>
               <NuevaCompra />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/cortes"
+          element={
+            <PrivateRoute>
+              <Cortes />
             </PrivateRoute>
           }
         />

@@ -23,9 +23,16 @@ export default function Dashboard() {
 
         <Link
           to="/nueva-compra"
-          className="block w-full bg-gray-900 text-white rounded-lg px-4 py-3 text-base font-medium text-center min-h-[44px]"
+          className="block w-full bg-gray-900 text-white rounded-lg px-4 py-3 text-base font-medium text-center min-h-[44px] mb-3"
         >
           Nueva compra
+        </Link>
+
+        <Link
+          to="/cortes"
+          className="block w-full border border-gray-300 text-gray-700 rounded-lg px-4 py-3 text-base font-medium text-center min-h-[44px]"
+        >
+          Mis cortes
         </Link>
       </div>
     </div>

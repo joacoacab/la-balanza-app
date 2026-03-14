@@ -41,6 +41,18 @@ export const api = {
   },
   cortes: {
     listar: () => request('/api/v1/cortes/'),
+    crear: (datos) =>
+      request('/api/v1/cortes/', {
+        method: 'POST',
+        body: JSON.stringify(datos),
+      }),
+    editar: (id, datos) =>
+      request(`/api/v1/cortes/${id}/`, {
+        method: 'PATCH',
+        body: JSON.stringify(datos),
+      }),
+    desactivar: (id) =>
+      request(`/api/v1/cortes/${id}/`, { method: 'DELETE' }),
   },
   compras: {
     crear: (datos) =>
