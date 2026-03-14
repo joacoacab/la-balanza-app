@@ -39,4 +39,15 @@ export const api = {
     logout: () =>
       request('/api/v1/auth/logout/', { method: 'POST' }),
   },
+  cortes: {
+    listar: () => request('/api/v1/cortes/'),
+  },
+  compras: {
+    crear: (datos) =>
+      request('/api/v1/compras/', {
+        method: 'POST',
+        body: JSON.stringify(datos),
+      }),
+    detalle: (id) => request(`/api/v1/compras/${id}/`),
+  },
 }

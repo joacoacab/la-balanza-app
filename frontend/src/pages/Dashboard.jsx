@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { useAuth } from '../auth/useAuth'
 
 export default function Dashboard() {
@@ -16,9 +17,16 @@ export default function Dashboard() {
           </button>
         </div>
 
-        <p className="text-gray-700 text-base">
+        <p className="text-gray-700 text-base mb-6">
           Bienvenido, <span className="font-medium">{user?.username}</span>.
         </p>
+
+        <Link
+          to="/nueva-compra"
+          className="block w-full bg-gray-900 text-white rounded-lg px-4 py-3 text-base font-medium text-center min-h-[44px]"
+        >
+          Nueva compra
+        </Link>
       </div>
     </div>
   )
