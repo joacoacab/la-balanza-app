@@ -31,6 +31,11 @@ async function request(path, options = {}) {
 
 export const api = {
   auth: {
+    registro: (datos) =>
+      request('/api/v1/auth/registro/', {
+        method: 'POST',
+        body: JSON.stringify(datos),
+      }),
     login: (username, password) =>
       request('/api/v1/auth/login/', {
         method: 'POST',

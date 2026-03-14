@@ -4,6 +4,7 @@ import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import NuevaCompra from './pages/NuevaCompra'
 import Cortes from './pages/Cortes'
+import Registro from './pages/Registro'
 
 function PrivateRoute({ children }) {
   const { user } = useAuth()
@@ -15,6 +16,7 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Login />} />
+        <Route path="/registro" element={<Registro />} />
         <Route
           path="/dashboard"
           element={

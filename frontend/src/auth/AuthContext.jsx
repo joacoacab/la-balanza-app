@@ -6,6 +6,12 @@ export const AuthContext = createContext(null)
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
 
+  async function registrar(datos) {
+    const { token } = await api.auth.registro(datos)
+    setToken(token)
+    setUser({ username: datos.username })
+  }
+
   async function login(username, password) {
     const { token } = await api.auth.login(username, password)
     setToken(token)
@@ -19,7 +25,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, registrar, login, logout }}>
       {children}
     </AuthContext.Provider>
   )
