@@ -22,6 +22,7 @@ ARG REQUIREMENTS_FILE=development.txt
 RUN if [ "$REQUIREMENTS_FILE" = "production.txt" ]; then \
       DJANGO_SETTINGS_MODULE=config.settings.production \
       SECRET_KEY=build-only \
+      ALLOWED_HOSTS=localhost \
       python manage.py collectstatic --noinput; \
     fi
 
