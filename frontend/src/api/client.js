@@ -60,6 +60,7 @@ export const api = {
       request(`/api/v1/cortes/${id}/`, { method: 'DELETE' }),
   },
   compras: {
+    listar: () => request('/api/v1/compras/'),
     crear: (datos) =>
       request('/api/v1/compras/', {
         method: 'POST',

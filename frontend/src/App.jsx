@@ -5,6 +5,10 @@ import Dashboard from './pages/Dashboard'
 import NuevaCompra from './pages/NuevaCompra'
 import Cortes from './pages/Cortes'
 import Registro from './pages/Registro'
+import Historial from './pages/Historial'
+import HistorialDetalle from './pages/HistorialDetalle'
+import Precios from './pages/Precios'
+import AppLayout from './layouts/AppLayout'
 
 function PrivateRoute({ children }) {
   const { user } = useAuth()
@@ -18,29 +22,19 @@ export default function App() {
         <Route path="/" element={<Login />} />
         <Route path="/registro" element={<Registro />} />
         <Route
-          path="/dashboard"
           element={
             <PrivateRoute>
-              <Dashboard />
+              <AppLayout />
             </PrivateRoute>
           }
-        />
-        <Route
-          path="/nueva-compra"
-          element={
-            <PrivateRoute>
-              <NuevaCompra />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/cortes"
-          element={
-            <PrivateRoute>
-              <Cortes />
-            </PrivateRoute>
-          }
-        />
+        >
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/nueva-compra" element={<NuevaCompra />} />
+          <Route path="/cortes" element={<Cortes />} />
+          <Route path="/historial" element={<Historial />} />
+          <Route path="/historial/:id" element={<HistorialDetalle />} />
+          <Route path="/precios" element={<Precios />} />
+        </Route>
       </Routes>
     </BrowserRouter>
   )

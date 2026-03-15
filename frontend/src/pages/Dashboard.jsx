@@ -1,39 +1,62 @@
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
+import { Calculator, Beef, ClipboardList, TrendingUp } from 'lucide-react'
 import { useAuth } from '../auth/useAuth'
 
+const CARDS = [
+  {
+    label: 'Nueva Compra',
+    to: '/nueva-compra',
+    icon: Calculator,
+    description: 'Calculá el costo por corte',
+  },
+  {
+    label: 'Mis Cortes',
+    to: '/cortes',
+    icon: Beef,
+    description: 'Administrá tus cortes',
+  },
+  {
+    label: 'Historial',
+    to: '/historial',
+    icon: ClipboardList,
+    description: 'Revisá compras anteriores',
+  },
+  {
+    label: 'Precios de hoy',
+    to: '/precios',
+    icon: TrendingUp,
+    description: 'Precios de la última compra',
+  },
+]
+
 export default function Dashboard() {
-  const { user, logout } = useAuth()
+  const navigate = useNavigate()
+  const { user } = useAuth()
 
   return (
-    <div className="min-h-screen bg-gray-50 px-6 py-8">
+    <div className="px-6 py-8">
       <div className="max-w-sm mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">La Balanza</h1>
-          <button
-            onClick={logout}
-            className="text-sm text-gray-500 underline min-h-[44px] px-2"
-          >
-            Salir
-          </button>
-        </div>
-
-        <p className="text-gray-700 text-base mb-6">
-          Bienvenido, <span className="font-medium">{user?.username}</span>.
+        <p className="text-gray-500 text-base mb-8">
+          Hola, {user?.username}
         </p>
 
-        <Link
-          to="/nueva-compra"
-          className="block w-full bg-gray-900 text-white rounded-lg px-4 py-3 text-base font-medium text-center min-h-[44px] mb-3"
-        >
-          Nueva compra
-        </Link>
-
-        <Link
-          to="/cortes"
-          className="block w-full border border-gray-300 text-gray-700 rounded-lg px-4 py-3 text-base font-medium text-center min-h-[44px]"
-        >
-          Mis cortes
-        </Link>
+        <div className="space-y-4">
+          {CARDS.map(({ label, to, icon: Icon, description }) => (
+            <button
+              key={to}
+              onClick={() => navigate(to)}
+              className="w-full bg-white border border-gray-200 rounded-xl p-5 flex items-center gap-4 text-left min-h-[72px] active:bg-gray-50"
+            >
+              <div className="bg-gray-100 rounded-lg p-3 shrink-0">
+                <Icon size={24} className="text-gray-700" />
+              </div>
+              <div>
+                <p className="text-base font-semibold text-gray-900">{label}</p>
+                <p className="text-sm text-gray-500">{description}</p>
+              </div>
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   )

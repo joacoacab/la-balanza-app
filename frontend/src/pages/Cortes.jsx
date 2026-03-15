@@ -1,13 +1,23 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../auth/useAuth'
+
+function VolverBtn() {
+  const navigate = useNavigate()
+  return (
+    <button
+      onClick={() => navigate(-1)}
+      className="text-base text-gray-700 font-medium mb-6 flex items-center gap-1 min-h-[44px]"
+    >
+      ← Volver
+    </button>
+  )
+}
 import { api } from '../api/client'
 import CorteCard from '../components/CorteCard'
 import CorteFormModal from '../components/CorteFormModal'
 import ConfirmDialog from '../components/ConfirmDialog'
 
 export default function Cortes() {
-  const { logout } = useAuth()
   const navigate = useNavigate()
 
   const [cortes, setCortes] = useState(null)       // null = cargando
@@ -102,18 +112,9 @@ export default function Cortes() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 px-6 py-8">
+    <div className="px-6 py-8">
       <div className="max-w-sm mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">La Balanza</h1>
-          <button
-            onClick={logout}
-            className="text-sm text-gray-500 underline min-h-[44px] px-2"
-          >
-            Salir
-          </button>
-        </div>
-
+        <VolverBtn />
         <h2 className="text-xl font-semibold text-gray-900 mb-6">Mis cortes</h2>
 
         {/* Cargando */}

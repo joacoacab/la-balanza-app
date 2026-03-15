@@ -1,13 +1,23 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../auth/useAuth'
 import { api } from '../api/client'
 import CompraForm from '../components/CompraForm'
 import CompraResumen from '../components/CompraResumen'
 import CortesTable from '../components/CortesTable'
 
+function VolverBtn() {
+  const navigate = useNavigate()
+  return (
+    <button
+      onClick={() => navigate(-1)}
+      className="text-base text-gray-700 font-medium mb-6 flex items-center gap-1 min-h-[44px]"
+    >
+      ← Volver
+    </button>
+  )
+}
+
 export default function NuevaCompra() {
-  const { logout } = useAuth()
   const navigate = useNavigate()
 
   // null = cargando, true/false = resultado del chequeo
@@ -58,10 +68,10 @@ export default function NuevaCompra() {
 
   if (tieneCortes === null) {
     return (
-      <div className="min-h-screen bg-gray-50 px-6 py-8">
+      <div className="px-6 py-8">
         <div className="max-w-sm mx-auto">
-          <Header onLogout={logout} />
-          <p className="text-gray-500 text-base mt-8">Cargando...</p>
+          <VolverBtn />
+          <p className="text-gray-500 text-base">Cargando...</p>
         </div>
       </div>
     )
@@ -69,9 +79,9 @@ export default function NuevaCompra() {
 
   if (!tieneCortes) {
     return (
-      <div className="min-h-screen bg-gray-50 px-6 py-8">
+      <div className="px-6 py-8">
         <div className="max-w-sm mx-auto">
-          <Header onLogout={logout} />
+          <VolverBtn />
           <h2 className="text-lg font-semibold text-gray-900 mb-2">
             Sin cortes configurados
           </h2>
@@ -86,31 +96,33 @@ export default function NuevaCompra() {
 
   if (status === 'result') {
     return (
-      <div className="min-h-screen bg-gray-50 px-6 py-8">
+      <div className="px-6 py-8">
         <div className="max-w-sm mx-auto">
-          <button
-            onClick={handleNuevaCompra}
-            className="text-base text-gray-700 font-medium mb-6 flex items-center gap-1 min-h-[44px]"
-          >
-            ← Nueva compra
-          </button>
+          <div className="flex gap-3 mb-6">
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="flex-1 border border-gray-300 text-gray-700 rounded-lg px-4 py-3 text-base font-medium min-h-[44px]"
+            >
+              ← Menú
+            </button>
+            <button
+              onClick={handleNuevaCompra}
+              className="flex-1 bg-gray-900 text-white rounded-lg px-4 py-3 text-base font-medium min-h-[44px]"
+            >
+              Nueva compra
+            </button>
+          </div>
           <CompraResumen compra={compra} />
           <CortesTable cortes={compra.cortes} />
-          <button
-            onClick={handleNuevaCompra}
-            className="w-full mt-6 bg-gray-900 text-white rounded-lg px-4 py-3 text-base font-medium min-h-[44px]"
-          >
-            Nueva compra
-          </button>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 px-6 py-8">
+    <div className="px-6 py-8">
       <div className="max-w-sm mx-auto">
-        <Header onLogout={logout} />
+        <VolverBtn />
         <h2 className="text-xl font-semibold text-gray-900 mb-6">
           Nueva compra
         </h2>
@@ -120,20 +132,6 @@ export default function NuevaCompra() {
           serverError={error}
         />
       </div>
-    </div>
-  )
-}
-
-function Header({ onLogout }) {
-  return (
-    <div className="flex items-center justify-between mb-8">
-      <h1 className="text-2xl font-bold text-gray-900">La Balanza</h1>
-      <button
-        onClick={onLogout}
-        className="text-sm text-gray-500 underline min-h-[44px] px-2"
-      >
-        Salir
-      </button>
     </div>
   )
 }
