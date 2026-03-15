@@ -62,10 +62,14 @@ jobs:
       - name: Login a ECR
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Sincronizar archivos de configuración al directorio de producción
+      - name: Copiar archivos de configuración al servidor
         run: |
-          cp docker-compose.prod.yml /home/ubuntu/la-balanza/
-          cp nginx.conf /home/ubuntu/la-balanza/
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > /tmp/deploy_key
+          chmod 600 /tmp/deploy_key
+          scp -i /tmp/deploy_key -o StrictHostKeyChecking=no \
+            docker-compose.prod.yml nginx.conf \
+            ubuntu@3.224.47.11:/home/ubuntu/la-balanza/
+          rm /tmp/deploy_key
 
       - name: Pull imagen nueva
         run: docker pull $ECR_IMAGE:dev

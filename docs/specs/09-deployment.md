@@ -100,7 +100,7 @@ El `CMD` de runserver se sobreescribe en `docker-compose.prod.yml` con el comand
 ```yaml
 traefik.enable: "true"
 traefik.docker.network: traefik
-traefik.http.routers.labalanza-api.rule: Host(`api.labalanza.siracnetwork.com.ar`)
+traefik.http.routers.labalanza-api.rule: Host(`api.labalanza.siracnetwork.com`)
 traefik.http.routers.labalanza-api.entrypoints: websecure
 traefik.http.routers.labalanza-api.tls.certresolver: letsencrypt
 traefik.http.services.labalanza-api.loadbalancer.server.port: 8000
@@ -121,7 +121,7 @@ traefik.http.services.labalanza-api.loadbalancer.server.port: 8000
 ```yaml
 traefik.enable: "true"
 traefik.docker.network: traefik
-traefik.http.routers.labalanza-frontend.rule: Host(`labalanza.siracnetwork.com.ar`)
+traefik.http.routers.labalanza-frontend.rule: Host(`labalanza.siracnetwork.com`)
 traefik.http.routers.labalanza-frontend.entrypoints: websecure
 traefik.http.routers.labalanza-frontend.tls.certresolver: letsencrypt
 traefik.http.services.labalanza-frontend.loadbalancer.server.port: 80
@@ -166,7 +166,7 @@ Variables requeridas en `.env.prod` en el servidor. Este archivo de ejemplo sí 
 # Django
 DJANGO_SETTINGS_MODULE=config.settings.production
 SECRET_KEY=cambiar-por-clave-segura-generada
-ALLOWED_HOSTS=api.labalanza.siracnetwork.com.ar
+ALLOWED_HOSTS=api.labalanza.siracnetwork.com
 
 # Base de datos (Django)
 DB_NAME=labalanza
@@ -290,16 +290,16 @@ Pasos que se hacen una sola vez antes del primer deploy:
 
 ### CA-01 — HTTPS en ambos dominios
 
-`https://api.labalanza.siracnetwork.com.ar/api/v1/auth/login/` responde `200` o `400` (no error de SSL).
-`https://labalanza.siracnetwork.com.ar/` carga la app React.
+`https://api.labalanza.siracnetwork.com/api/v1/auth/login/` responde `200` o `400` (no error de SSL).
+`https://labalanza.siracnetwork.com/` carga la app React.
 
 ### CA-02 — HTTP redirige a HTTPS
 
-`http://labalanza.siracnetwork.com.ar/` redirige a `https://labalanza.siracnetwork.com.ar/` (Traefik maneja esto con su entrypoint `web` → redirect middleware, ya configurado en el Traefik existente).
+`http://labalanza.siracnetwork.com/` redirige a `https://labalanza.siracnetwork.com/` (Traefik maneja esto con su entrypoint `web` → redirect middleware, ya configurado en el Traefik existente).
 
 ### CA-03 — React Router funciona en producción
 
-Navegar directamente a `https://labalanza.siracnetwork.com.ar/dashboard` devuelve `index.html` (no 404). Confirma que `try_files` de Nginx está correcto.
+Navegar directamente a `https://labalanza.siracnetwork.com/dashboard` devuelve `index.html` (no 404). Confirma que `try_files` de Nginx está correcto.
 
 ### CA-04 — El proxy de Nginx enruta la API
 
