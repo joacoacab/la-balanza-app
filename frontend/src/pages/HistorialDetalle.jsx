@@ -1,8 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useContext } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { Printer } from 'lucide-react'
 import { api } from '../api/client'
+import { AuthContext } from '../auth/AuthContext'
 import CompraResumen from '../components/CompraResumen'
 import CortesTable from '../components/CortesTable'
+import { generarListaPreciosPdf } from '../utils/generarListaPreciosPdf'
 
 const MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic']
 
@@ -14,6 +17,7 @@ function formatFecha(iso) {
 export default function HistorialDetalle() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { user } = useContext(AuthContext)
   const [compra, setCompra] = useState(null)
   const [error, setError] = useState(null)
 
@@ -53,6 +57,13 @@ export default function HistorialDetalle() {
             </h2>
             <CompraResumen compra={compra} />
             <CortesTable cortes={compra.cortes} />
+            <button
+              onClick={() => generarListaPreciosPdf({ nombreCarniceria: user?.username ?? '', compra })}
+              className="w-full mt-4 border border-gray-300 text-gray-700 rounded-lg px-4 py-3 text-base font-medium min-h-[44px] flex items-center justify-center gap-2"
+            >
+              <Printer size={18} />
+              Imprimir lista de precios
+            </button>
           </>
         )}
       </div>
