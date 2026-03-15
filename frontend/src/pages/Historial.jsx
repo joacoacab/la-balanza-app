@@ -21,6 +21,13 @@ function formatFecha(iso) {
   return `${parseInt(dia)} ${MESES[parseInt(mes) - 1]} ${anio}`
 }
 
+function fmtNum(val, opts = {}) {
+  if (val == null) return '-'
+  const n = parseFloat(val)
+  if (isNaN(n)) return '-'
+  return n.toLocaleString('es-AR', opts)
+}
+
 export default function Historial() {
   const navigate = useNavigate()
   const [compras, setCompras] = useState(null)
@@ -85,13 +92,13 @@ export default function Historial() {
                   <span className="text-gray-400 text-lg">→</span>
                 </div>
                 <p className="text-sm text-gray-500">
-                  {parseFloat(compra.peso_kg).toLocaleString('es-AR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} kg · ${parseFloat(compra.precio_kg).toLocaleString('es-AR')}/kg
+                  {fmtNum(compra.peso_media_res, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} kg · ${fmtNum(compra.precio_kg)}/kg
                 </p>
                 <p className="text-sm text-gray-700 mt-1">
-                  Total: ${parseFloat(compra.costo_total).toLocaleString('es-AR')}
+                  Total: ${fmtNum(compra.costo_total)}
                 </p>
                 <p className="text-sm text-gray-700">
-                  Neto: ${parseFloat(compra.costo_neto).toLocaleString('es-AR')}
+                  Neto: ${fmtNum(compra.costo_neto)}
                 </p>
               </Link>
             ))}

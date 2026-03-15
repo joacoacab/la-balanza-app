@@ -9,6 +9,10 @@ export default function CompraResumen({ compra }) {
     <div className="bg-white rounded-xl border border-gray-200 p-4 mb-6">
       <h2 className="text-base font-semibold text-gray-900 mb-3">Resumen</h2>
       <dl className="space-y-2">
+        <Fila
+          label="Peso media res"
+          valor={`${parseFloat(compra.peso_media_res).toFixed(1)} kg`}
+        />
         <Fila label="Costo total" valor={`$${fmt(compra.costo_total)}`} />
         <Fila label="Costo neto" valor={`$${fmt(compra.costo_neto)}`} />
         <Fila
