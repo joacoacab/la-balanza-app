@@ -1,0 +1,80 @@
+name: Deploy Backend
+
+on:
+  push:
+    branches:
+      - dev
+    paths:
+      - "backend/**"
+      - "Dockerfile"
+      - "requirements/**"
+      - "docker-compose.prod.yml"
+      - "nginx.conf"
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  ECR_IMAGE: 117457653783.dkr.ecr.us-east-1.amazonaws.com/la-balanza-backend
+
+jobs:
+  build-push:
+    name: Build y push a ECR
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar credenciales AWS (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::117457653783:role/LaBalanzaGitHubActionsRole
+          aws-region: us-east-1
+
+      - name: Login a ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build y push imagen
+        run: |
+          docker build \
+            --build-arg REQUIREMENTS_FILE=production.txt \
+            -t $ECR_IMAGE:dev \
+            -t $ECR_IMAGE:${{ github.sha }} \
+            .
+          docker push $ECR_IMAGE:dev
+          docker push $ECR_IMAGE:${{ github.sha }}
+
+  deploy:
+    name: Deploy en servidor
+    runs-on: [self-hosted, dev]
+    needs: build-push
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar credenciales AWS (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::117457653783:role/LaBalanzaGitHubActionsRole
+          aws-region: us-east-1
+
+      - name: Login a ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Sincronizar archivos de configuración al directorio de producción
+        run: |
+          cp docker-compose.prod.yml /home/ubuntu/la-balanza/
+          cp nginx.conf /home/ubuntu/la-balanza/
+
+      - name: Pull imagen nueva
+        run: docker pull $ECR_IMAGE:dev
+
+      - name: Restart web (sin tocar db ni nginx)
+        run: |
+          docker compose -f /home/ubuntu/la-balanza/docker-compose.prod.yml up -d --no-deps web
+
+      - name: Aplicar migraciones
+        run: |
+          docker compose -f /home/ubuntu/la-balanza/docker-compose.prod.yml exec -T web \
+            python manage.py migrate --noinput
