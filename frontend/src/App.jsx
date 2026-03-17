@@ -8,6 +8,7 @@ import Registro from './pages/Registro'
 import Historial from './pages/Historial'
 import HistorialDetalle from './pages/HistorialDetalle'
 import Precios from './pages/Precios'
+import Bienvenida from './pages/Bienvenida'
 import AppLayout from './layouts/AppLayout'
 
 function PrivateRoute({ children }) {
@@ -21,6 +22,14 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/registro" element={<Registro />} />
+        <Route
+          path="/bienvenida"
+          element={
+            <PrivateRoute>
+              <Bienvenida />
+            </PrivateRoute>
+          }
+        />
         <Route
           element={
             <PrivateRoute>

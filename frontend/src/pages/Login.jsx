@@ -1,14 +1,57 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef, useContext } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/useAuth'
+import { AuthContext } from '../auth/AuthContext'
 
 export default function Login() {
   const { login } = useAuth()
+  const { loginConGoogle } = useContext(AuthContext)
   const navigate = useNavigate()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
+  const googleBtnRef = useRef(null)
+  const googleCallbackRef = useRef(null)
+
+  async function handleGoogleCallback(response) {
+    setError(null)
+    setLoading(true)
+    try {
+      const es_primera_vez = await loginConGoogle(response.credential)
+      navigate(es_primera_vez ? '/bienvenida' : '/dashboard', {
+        state: { fromAuth: true },
+      })
+    } catch {
+      setError('No se pudo iniciar sesión con Google.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  googleCallbackRef.current = handleGoogleCallback
+
+  useEffect(() => {
+    function initGoogle() {
+      window.google.accounts.id.initialize({
+        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+        callback: (resp) => googleCallbackRef.current(resp),
+      })
+      window.google.accounts.id.renderButton(googleBtnRef.current, {
+        theme: 'outline',
+        size: 'large',
+        text: 'continue_with',
+        locale: 'es',
+        width: googleBtnRef.current?.offsetWidth || 360,
+      })
+    }
+
+    if (window.google) {
+      initGoogle()
+    } else {
+      window.onGoogleLibraryLoad = initGoogle
+    }
+  }, [])
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -17,7 +60,7 @@ export default function Login() {
     try {
       await login(username, password)
       navigate('/dashboard')
-    } catch (err) {
+    } catch {
       setError('Usuario o contraseña incorrectos.')
     } finally {
       setLoading(false)
@@ -29,6 +72,14 @@ export default function Login() {
       <div className="max-w-sm w-full mx-auto">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">La Balanza</h1>
         <p className="text-gray-500 mb-8">Ingresá a tu cuenta</p>
+
+        <div ref={googleBtnRef} className="w-full mb-4" />
+
+        <div className="flex items-center gap-3 mb-4">
+          <hr className="flex-1 border-gray-300" />
+          <span className="text-sm text-gray-400">o</span>
+          <hr className="flex-1 border-gray-300" />
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>

@@ -2,3 +2,5 @@ Django>=5.1,<6.0
 djangorestframework
 psycopg2-binary
 python-decouple
+google-auth
+requests

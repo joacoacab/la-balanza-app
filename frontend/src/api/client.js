@@ -43,6 +43,11 @@ export const api = {
       }),
     logout: () =>
       request('/api/v1/auth/logout/', { method: 'POST' }),
+    google: (idToken) =>
+      request('/api/v1/auth/google/', {
+        method: 'POST',
+        body: JSON.stringify({ id_token: idToken }),
+      }),
   },
   cortes: {
     listar: () => request('/api/v1/cortes/'),

@@ -5,6 +5,7 @@ from rest_framework import serializers
 from rest_framework.authtoken.models import Token
 
 from core.models import Carniceria
+from core.services.onboarding import cargar_cortes_base
 
 User = get_user_model()
 
@@ -40,9 +41,10 @@ class RegistroSerializer(serializers.Serializer):
                 username=validated_data["username"],
                 password=validated_data["password"],
             )
-            Carniceria.objects.create(
+            carniceria = Carniceria.objects.create(
                 user=user,
                 nombre=validated_data["nombre_carniceria"],
             )
+            cargar_cortes_base(carniceria)
             token = Token.objects.create(user=user)
         return token
