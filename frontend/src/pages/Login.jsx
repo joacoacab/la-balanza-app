@@ -18,10 +18,9 @@ export default function Login() {
     setError(null)
     setLoading(true)
     try {
-      const es_primera_vez = await loginConGoogle(response.credential)
-      navigate(es_primera_vez ? '/bienvenida' : '/dashboard', {
-        state: { fromAuth: true },
-      })
+      const { es_primera_vez, is_staff } = await loginConGoogle(response.credential)
+      const destino = is_staff ? '/admin-saas/' : es_primera_vez ? '/bienvenida' : '/dashboard'
+      navigate(destino, { state: { fromAuth: true } })
     } catch {
       setError('No se pudo iniciar sesión con Google.')
     } finally {
@@ -58,8 +57,8 @@ export default function Login() {
     setError(null)
     setLoading(true)
     try {
-      await login(username, password)
-      navigate('/dashboard')
+      const is_staff = await login(username, password)
+      navigate(is_staff ? '/admin-saas/' : '/dashboard')
     } catch {
       setError('Usuario o contraseña incorrectos.')
     } finally {

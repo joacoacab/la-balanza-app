@@ -27,7 +27,7 @@ class AuthRegistroView(APIView):
         serializer.is_valid(raise_exception=True)
         token = serializer.save()
         return Response(
-            {"token": token.key, "es_primera_vez": True},
+            {"token": token.key, "es_primera_vez": True, "is_staff": False},
             status=status.HTTP_201_CREATED,
         )
 
@@ -41,7 +41,7 @@ class AuthLoginView(ObtainAuthToken):
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data["user"]
         token, _ = Token.objects.get_or_create(user=user)
-        return Response({"token": token.key})
+        return Response({"token": token.key, "is_staff": user.is_staff})
 
 
 class AuthLogoutView(APIView):
@@ -110,4 +110,5 @@ class GoogleAuthView(APIView):
             "token": token.key,
             "username": user.username,
             "es_primera_vez": es_primera_vez,
+            "is_staff": user.is_staff,
         })

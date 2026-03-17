@@ -9,11 +9,19 @@ import Historial from './pages/Historial'
 import HistorialDetalle from './pages/HistorialDetalle'
 import Precios from './pages/Precios'
 import Bienvenida from './pages/Bienvenida'
+import AdminPanel from './pages/AdminPanel'
 import AppLayout from './layouts/AppLayout'
 
 function PrivateRoute({ children }) {
   const { user } = useAuth()
   return user ? children : <Navigate to="/" replace />
+}
+
+function StaffRoute({ children }) {
+  const { user } = useAuth()
+  if (!user) return <Navigate to="/" replace />
+  if (!user.is_staff) return <Navigate to="/dashboard" replace />
+  return children
 }
 
 export default function App() {
@@ -22,6 +30,14 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/registro" element={<Registro />} />
+        <Route
+          path="/admin-saas/"
+          element={
+            <StaffRoute>
+              <AdminPanel />
+            </StaffRoute>
+          }
+        />
         <Route
           path="/bienvenida"
           element={

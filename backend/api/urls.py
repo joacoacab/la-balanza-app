@@ -1,5 +1,6 @@
 from django.urls import path
 
+from api.views.admin import AdminCarnieceriaListView, AdminStatsView
 from api.views.auth import AuthLoginView, AuthLogoutView, AuthRegistroView, GoogleAuthView
 from api.views.compra_cortes import CompraCorteUpdateView
 from api.views.compras import CompraListCreateView, CompraRetrieveView
@@ -15,4 +16,6 @@ urlpatterns = [
     path("compras/", CompraListCreateView.as_view()),
     path("compras/<int:pk>/", CompraRetrieveView.as_view()),
     path("compras/<int:compra_pk>/cortes/<int:corte_pk>/", CompraCorteUpdateView.as_view()),
+    path("admin/stats/", AdminStatsView.as_view()),
+    path("admin/carniceria/", AdminCarnieceriaListView.as_view()),
 ]

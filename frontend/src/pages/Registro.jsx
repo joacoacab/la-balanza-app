@@ -24,10 +24,9 @@ export default function Registro() {
     setError(null)
     setLoading(true)
     try {
-      const es_primera_vez = await loginConGoogle(response.credential)
-      navigate(es_primera_vez ? '/bienvenida' : '/dashboard', {
-        state: { fromAuth: true },
-      })
+      const { es_primera_vez, is_staff } = await loginConGoogle(response.credential)
+      const destino = is_staff ? '/admin-saas/' : es_primera_vez ? '/bienvenida' : '/dashboard'
+      navigate(destino, { state: { fromAuth: true } })
     } catch {
       setError('No se pudo iniciar sesión con Google.')
     } finally {
@@ -83,15 +82,14 @@ export default function Registro() {
     setError(null)
     setLoading(true)
     try {
-      const es_primera_vez = await registrar({
+      const { es_primera_vez, is_staff } = await registrar({
         nombre_carniceria: form.nombre_carniceria.trim(),
         username: form.username.trim(),
         password: form.password,
         password_confirm: form.password_confirm,
       })
-      navigate(es_primera_vez ? '/bienvenida' : '/dashboard', {
-        state: { fromAuth: true },
-      })
+      const destino = is_staff ? '/admin-saas/' : es_primera_vez ? '/bienvenida' : '/dashboard'
+      navigate(destino, { state: { fromAuth: true } })
     } catch (err) {
       const data = err.data ?? {}
       if (data.username) {

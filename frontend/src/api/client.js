@@ -64,6 +64,10 @@ export const api = {
     desactivar: (id) =>
       request(`/api/v1/cortes/${id}/`, { method: 'DELETE' }),
   },
+  admin: {
+    stats: () => request('/api/v1/admin/stats/'),
+    carniceria: () => request('/api/v1/admin/carniceria/'),
+  },
   compras: {
     listar: () => request('/api/v1/compras/'),
     crear: (datos) =>
