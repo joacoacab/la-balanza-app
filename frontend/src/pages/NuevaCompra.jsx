@@ -6,6 +6,7 @@ import { AuthContext } from '../auth/AuthContext'
 import CompraForm from '../components/CompraForm'
 import CompraResumen from '../components/CompraResumen'
 import CortesTable from '../components/CortesTable'
+import BloqueoPlanBanner from '../components/BloqueoPlanBanner'
 import { generarListaPreciosPdf } from '../utils/generarListaPreciosPdf'
 
 const ICON_ANIMAL = { res: Beef, cerdo: Ham, pollo: Bird }
@@ -60,6 +61,7 @@ export default function NuevaCompra() {
   const [status, setStatus] = useState('idle') // idle | loading | result
   const [compra, setCompra] = useState(null)
   const [error, setError] = useState(null)
+  const [bloqueo, setBloqueo] = useState(null)
 
   useEffect(() => {
     api.cortes
@@ -78,6 +80,7 @@ export default function NuevaCompra() {
   function handleCambiarAnimal(animal) {
     setTipoAnimal(animal)
     setError(null)
+    setBloqueo(null)
   }
 
   async function handleSubmit(formData) {
@@ -94,7 +97,9 @@ export default function NuevaCompra() {
         navigate('/')
         return
       }
-      if (err.status === 400) {
+      if (err.status === 403 && err.data?.error === 'plan_insuficiente') {
+        setBloqueo(err.data.mensaje)
+      } else if (err.status === 400) {
         const msgs = err.data?.non_field_errors
         setError(msgs ? msgs[0] : 'Error en los datos ingresados.')
       } else {
@@ -182,6 +187,7 @@ export default function NuevaCompra() {
           seleccionado={tipoAnimal}
           onSeleccionar={handleCambiarAnimal}
         />
+        {bloqueo && <BloqueoPlanBanner mensaje={bloqueo} />}
         <CompraForm
           key={tipoAnimal}
           tipoAnimal={tipoAnimal}

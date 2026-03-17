@@ -1,3 +1,5 @@
+from calendar import monthrange
+from datetime import date
 from decimal import Decimal
 
 from django.conf import settings
@@ -278,3 +280,80 @@ class CompraCorte(models.Model):
     @property
     def precio_sugerido_total(self):
         return self.precio_sugerido_kg * self.kg_corte
+
+
+def _add_months(d, months):
+    """Suma meses a una fecha sin dependencias externas."""
+    month = d.month - 1 + months
+    year = d.year + month // 12
+    month = month % 12 + 1
+    day = min(d.day, monthrange(year, month)[1])
+    return date(year, month, day)
+
+
+class Suscripcion(models.Model):
+    PLAN_CHOICES = [("free", "Free"), ("pro", "Pro")]
+    CICLO_CHOICES = [
+        ("mensual", "Mensual"),
+        ("trimestral", "Trimestral"),
+        ("anual", "Anual"),
+    ]
+    ESTADO_CHOICES = [
+        ("activa", "Activa"),
+        ("vencida", "Vencida"),
+        ("cancelada", "Cancelada"),
+    ]
+
+    carniceria = models.OneToOneField(
+        Carniceria,
+        on_delete=models.CASCADE,
+        related_name="suscripcion",
+    )
+    plan = models.CharField(max_length=10, choices=PLAN_CHOICES, default="free")
+    ciclo = models.CharField(max_length=15, choices=CICLO_CHOICES, null=True, blank=True)
+    estado = models.CharField(max_length=15, choices=ESTADO_CHOICES, default="activa")
+    mp_preapproval_id = models.CharField(max_length=100, null=True, blank=True)
+    fecha_inicio = models.DateField(null=True, blank=True)
+    fecha_vencimiento = models.DateField(null=True, blank=True)
+    creado_en = models.DateTimeField(auto_now_add=True)
+    actualizado_en = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Suscripción"
+        verbose_name_plural = "Suscripciones"
+
+    def __str__(self):
+        return f"{self.carniceria} — {self.plan} ({self.estado})"
+
+    def puede_crear_compra(self, tipo_animal):
+        """Devuelve (puede: bool, mensaje: str)."""
+        if self.plan == "free":
+            if tipo_animal != "res":
+                return False, (
+                    f"Tu plan Free no permite registrar compras de {tipo_animal}. "
+                    "Actualizá a Pro para continuar."
+                )
+        elif self.plan == "pro" and self.estado in ("vencida", "cancelada"):
+            return False, (
+                "Tu suscripción Pro está vencida. Renovate para seguir creando compras."
+            )
+        return True, ""
+
+    @property
+    def puede_ver_pdf(self):
+        return self.plan == "pro"
+
+    @property
+    def compras_visibles_limit(self):
+        """Retorna 5 para plan free, None para pro (sin límite)."""
+        if self.plan == "free":
+            return 5
+        return None
+
+    def activar_pro(self, ciclo, fecha_inicio):
+        meses = {"mensual": 1, "trimestral": 3, "anual": 12}[ciclo]
+        self.plan = "pro"
+        self.estado = "activa"
+        self.fecha_inicio = fecha_inicio
+        self.fecha_vencimiento = _add_months(fecha_inicio, meses)
+        self.save(update_fields=["plan", "estado", "fecha_inicio", "fecha_vencimiento"])

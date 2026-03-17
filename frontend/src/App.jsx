@@ -10,6 +10,8 @@ import HistorialDetalle from './pages/HistorialDetalle'
 import Precios from './pages/Precios'
 import Bienvenida from './pages/Bienvenida'
 import AdminPanel from './pages/AdminPanel'
+import Planes from './pages/Planes'
+import SuscripcionConfirmacion from './pages/SuscripcionConfirmacion'
 import AppLayout from './layouts/AppLayout'
 
 function PrivateRoute({ children }) {
@@ -59,7 +61,16 @@ export default function App() {
           <Route path="/historial" element={<Historial />} />
           <Route path="/historial/:id" element={<HistorialDetalle />} />
           <Route path="/precios" element={<Precios />} />
+          <Route path="/planes" element={<Planes />} />
         </Route>
+        <Route
+          path="/planes/confirmacion"
+          element={
+            <PrivateRoute>
+              <SuscripcionConfirmacion />
+            </PrivateRoute>
+          }
+        />
       </Routes>
     </BrowserRouter>
   )

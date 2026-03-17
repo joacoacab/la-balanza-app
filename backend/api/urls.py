@@ -2,6 +2,7 @@ from django.urls import path
 
 from api.views.admin import AdminCarnieceriaListView, AdminStatsView
 from api.views.auth import AuthLoginView, AuthLogoutView, AuthRegistroView, GoogleAuthView
+from api.views.billing import BillingEstadoView, MercadoPagoWebhookView, SuscribirView
 from api.views.compra_cortes import CompraCorteUpdateView
 from api.views.compras import CompraListCreateView, CompraRetrieveView
 from api.views.cortes import CargarPlantillaView, CorteDetailView, CorteListCreateView
@@ -19,4 +20,7 @@ urlpatterns = [
     path("compras/<int:compra_pk>/cortes/<int:corte_pk>/", CompraCorteUpdateView.as_view()),
     path("admin/stats/", AdminStatsView.as_view()),
     path("admin/carniceria/", AdminCarnieceriaListView.as_view()),
+    path("billing/suscribir/", SuscribirView.as_view()),
+    path("billing/estado/", BillingEstadoView.as_view()),
+    path("webhooks/mercadopago/", MercadoPagoWebhookView.as_view()),
 ]

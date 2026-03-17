@@ -85,6 +85,11 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 GOOGLE_CLIENT_ID = config("GOOGLE_CLIENT_ID", default="")
 
+MP_ACCESS_TOKEN = config("MP_ACCESS_TOKEN", default="")
+MP_WEBHOOK_SECRET = config("MP_WEBHOOK_SECRET", default="")
+APP_URL = config("APP_URL", default="http://localhost:5173")
+MP_MOCK = False
+
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework.authentication.TokenAuthentication",

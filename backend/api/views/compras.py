@@ -1,6 +1,8 @@
 from rest_framework import generics, status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from api.permissions import PuedeCrearCompra
 from api.serializers.compra import (
     CompraCreateSerializer,
     CompraDetailSerializer,
@@ -10,8 +12,17 @@ from core.models import Compra
 
 
 class CompraListCreateView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated, PuedeCrearCompra]
+
     def get_queryset(self):
-        return Compra.objects.filter(carniceria=self.request.user.carniceria)
+        qs = Compra.objects.filter(carniceria=self.request.user.carniceria)
+        try:
+            limite = self.request.user.carniceria.suscripcion.compras_visibles_limit
+        except Exception:
+            limite = None
+        if limite is not None:
+            qs = qs[:limite]
+        return qs
 
     def get(self, request):
         serializer = CompraListSerializer(self.get_queryset(), many=True)

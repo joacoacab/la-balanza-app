@@ -82,4 +82,12 @@ export const api = {
       }),
     detalle: (id) => request(`/api/v1/compras/${id}/`),
   },
+  billing: {
+    suscribir: (ciclo) =>
+      request('/api/v1/billing/suscribir/', {
+        method: 'POST',
+        body: JSON.stringify({ ciclo }),
+      }),
+    estado: () => request('/api/v1/billing/estado/'),
+  },
 }
