@@ -21,7 +21,9 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Instalar dependencias y buildear
+      - name: Build React
+        env:
+          VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
         run: |
           cd frontend
           npm ci
