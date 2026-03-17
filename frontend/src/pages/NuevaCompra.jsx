@@ -1,12 +1,16 @@
 import { useState, useEffect, useContext } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Printer } from 'lucide-react'
+import { Beef, Ham, Bird, Printer } from 'lucide-react'
 import { api } from '../api/client'
 import { AuthContext } from '../auth/AuthContext'
 import CompraForm from '../components/CompraForm'
 import CompraResumen from '../components/CompraResumen'
 import CortesTable from '../components/CortesTable'
 import { generarListaPreciosPdf } from '../utils/generarListaPreciosPdf'
+
+const ICON_ANIMAL = { res: Beef, cerdo: Ham, pollo: Bird }
+const LABEL_ANIMAL = { res: 'Res', cerdo: 'Cerdo', pollo: 'Pollo' }
+const ORDEN_ANIMAL = ['res', 'cerdo', 'pollo']
 
 function VolverBtn() {
   const navigate = useNavigate()
@@ -20,12 +24,39 @@ function VolverBtn() {
   )
 }
 
+function AnimalSelector({ animales, seleccionado, onSeleccionar }) {
+  if (animales.length <= 1) return null
+  return (
+    <div className="flex gap-3 mb-6">
+      {animales.map((animal) => {
+        const Icon = ICON_ANIMAL[animal]
+        const activo = seleccionado === animal
+        return (
+          <button
+            key={animal}
+            type="button"
+            onClick={() => onSeleccionar(animal)}
+            className={`flex-1 flex flex-col items-center gap-2 py-3 rounded-xl border-2 transition-colors ${
+              activo
+                ? 'border-gray-900 bg-gray-900 text-white'
+                : 'border-gray-200 bg-white text-gray-500'
+            }`}
+          >
+            <Icon size={24} />
+            <span className="text-sm font-medium">{LABEL_ANIMAL[animal]}</span>
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
 export default function NuevaCompra() {
   const navigate = useNavigate()
   const { user } = useContext(AuthContext)
 
-  // null = cargando, true/false = resultado del chequeo
-  const [tieneCortes, setTieneCortes] = useState(null)
+  const [animalesDisponibles, setAnimalesDisponibles] = useState(null) // null = cargando
+  const [tipoAnimal, setTipoAnimal] = useState('res')
   const [status, setStatus] = useState('idle') // idle | loading | result
   const [compra, setCompra] = useState(null)
   const [error, setError] = useState(null)
@@ -33,19 +64,28 @@ export default function NuevaCompra() {
   useEffect(() => {
     api.cortes
       .listar()
-      .then((cortes) => setTieneCortes(cortes.length > 0))
+      .then((cortes) => {
+        const animales = ORDEN_ANIMAL.filter((a) => cortes.some((c) => c.tipo_animal === a))
+        setAnimalesDisponibles(animales.length > 0 ? animales : null)
+        if (animales.length > 0) setTipoAnimal(animales[0])
+      })
       .catch((err) => {
         if (err.status === 401) navigate('/')
-        else setTieneCortes(false)
+        else setAnimalesDisponibles([])
       })
   }, [navigate])
+
+  function handleCambiarAnimal(animal) {
+    setTipoAnimal(animal)
+    setError(null)
+  }
 
   async function handleSubmit(formData) {
     setStatus('loading')
     setError(null)
     try {
       const fecha = new Date().toISOString().slice(0, 10)
-      const creada = await api.compras.crear({ fecha, ...formData })
+      const creada = await api.compras.crear({ fecha, tipo_animal: tipoAnimal, ...formData })
       const detalle = await api.compras.detalle(creada.id)
       setCompra(detalle)
       setStatus('result')
@@ -70,7 +110,7 @@ export default function NuevaCompra() {
     setStatus('idle')
   }
 
-  if (tieneCortes === null) {
+  if (animalesDisponibles === null) {
     return (
       <div className="px-6 py-8">
         <div className="max-w-sm mx-auto">
@@ -81,7 +121,7 @@ export default function NuevaCompra() {
     )
   }
 
-  if (!tieneCortes) {
+  if (animalesDisponibles.length === 0) {
     return (
       <div className="px-6 py-8">
         <div className="max-w-sm mx-auto">
@@ -137,7 +177,14 @@ export default function NuevaCompra() {
         <h2 className="text-xl font-semibold text-gray-900 mb-6">
           Nueva compra
         </h2>
+        <AnimalSelector
+          animales={animalesDisponibles}
+          seleccionado={tipoAnimal}
+          onSeleccionar={handleCambiarAnimal}
+        />
         <CompraForm
+          key={tipoAnimal}
+          tipoAnimal={tipoAnimal}
           onSubmit={handleSubmit}
           loading={status === 'loading'}
           serverError={error}

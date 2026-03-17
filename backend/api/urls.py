@@ -4,7 +4,7 @@ from api.views.admin import AdminCarnieceriaListView, AdminStatsView
 from api.views.auth import AuthLoginView, AuthLogoutView, AuthRegistroView, GoogleAuthView
 from api.views.compra_cortes import CompraCorteUpdateView
 from api.views.compras import CompraListCreateView, CompraRetrieveView
-from api.views.cortes import CorteDetailView, CorteListCreateView
+from api.views.cortes import CargarPlantillaView, CorteDetailView, CorteListCreateView
 
 urlpatterns = [
     path("auth/registro/", AuthRegistroView.as_view()),
@@ -12,6 +12,7 @@ urlpatterns = [
     path("auth/logout/", AuthLogoutView.as_view()),
     path("auth/google/", GoogleAuthView.as_view()),
     path("cortes/", CorteListCreateView.as_view()),
+    path("cortes/cargar-plantilla/", CargarPlantillaView.as_view()),
     path("cortes/<int:pk>/", CorteDetailView.as_view()),
     path("compras/", CompraListCreateView.as_view()),
     path("compras/<int:pk>/", CompraRetrieveView.as_view()),

@@ -6,6 +6,13 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 
+TIPO_ANIMAL_CHOICES = [
+    ("res", "Res"),
+    ("cerdo", "Cerdo"),
+    ("pollo", "Pollo"),
+]
+
+
 class Carniceria(models.Model):
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
@@ -30,6 +37,11 @@ class Corte(models.Model):
         on_delete=models.CASCADE,
         related_name="cortes",
     )
+    tipo_animal = models.CharField(
+        max_length=10,
+        choices=TIPO_ANIMAL_CHOICES,
+        default="res",
+    )
     nombre = models.CharField(max_length=80)
     porcentaje_rendimiento = models.DecimalField(
         max_digits=5,
@@ -53,7 +65,7 @@ class Corte(models.Model):
         verbose_name_plural = "Cortes"
         constraints = [
             models.UniqueConstraint(
-                fields=["carniceria", "nombre"],
+                fields=["carniceria", "nombre", "tipo_animal"],
                 name="unique_corte_por_carniceria",
             ),
             models.CheckConstraint(
@@ -111,6 +123,11 @@ class Compra(models.Model):
         decimal_places=2,
         validators=[MinValueValidator(Decimal("0"))],
     )
+    tipo_animal = models.CharField(
+        max_length=10,
+        choices=TIPO_ANIMAL_CHOICES,
+        default="res",
+    )
     notas = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -158,7 +175,7 @@ class Compra(models.Model):
         es_nueva = self.pk is None
         super().save(*args, **kwargs)
         if es_nueva:
-            cortes_activos = self.carniceria.cortes.filter(activo=True)
+            cortes_activos = self.carniceria.cortes.filter(activo=True, tipo_animal=self.tipo_animal)
             CompraCorte.objects.bulk_create([
                 CompraCorte(
                     compra=self,

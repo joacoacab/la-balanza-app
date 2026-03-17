@@ -19,6 +19,7 @@ class CompraListSerializer(serializers.ModelSerializer):
         model = Compra
         fields = [
             "id",
+            "tipo_animal",
             "fecha",
             "peso_media_res",
             "precio_kg",
@@ -38,6 +39,7 @@ class CompraCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Compra
         fields = [
+            "tipo_animal",
             "fecha",
             "peso_media_res",
             "precio_kg",
@@ -75,6 +77,7 @@ class CompraDetailSerializer(serializers.ModelSerializer):
         model = Compra
         fields = [
             "id",
+            "tipo_animal",
             "fecha",
             "peso_media_res",
             "precio_kg",

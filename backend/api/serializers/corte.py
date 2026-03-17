@@ -6,11 +6,12 @@ from core.models import Corte
 class CorteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Corte
-        fields = ["id", "nombre", "porcentaje_rendimiento", "margen_porcentaje", "orden"]
+        fields = ["id", "tipo_animal", "nombre", "porcentaje_rendimiento", "margen_porcentaje", "orden"]
 
     def validate_nombre(self, value):
         carniceria = self.context["request"].user.carniceria
-        qs = Corte.objects.filter(carniceria=carniceria, nombre=value)
+        tipo_animal = self.initial_data.get("tipo_animal", "res")
+        qs = Corte.objects.filter(carniceria=carniceria, nombre=value, tipo_animal=tipo_animal)
         if self.instance:
             qs = qs.exclude(pk=self.instance.pk)
         if qs.exists():

@@ -1,6 +1,6 @@
 from core.models import Corte
 
-CORTES_BASE = [
+CORTES_RES = [
     ("Nalga",             8.0,  52, 1),
     ("Peceto",            3.5,  52, 2),
     ("Bife de Lomo",      2.5,  45, 3),
@@ -28,15 +28,50 @@ CORTES_BASE = [
     ("Lomo",              2.5,  52, 25),
 ]
 
+CORTES_CERDO = [
+    ("Bondiola",          6.0,  45, 1),
+    ("Paleta",            8.0,  36, 2),
+    ("Carré",             5.0,  45, 3),
+    ("Costillas",         7.0,  30, 4),
+    ("Lomo",              3.0,  52, 5),
+    ("Matambre de cerdo", 4.0,  36, 6),
+    ("Pata trasera",      5.0,  29, 7),
+    ("Panceta",           6.0,  22, 8),
+    ("Picada de cerdo",   4.0,   4, 9),
+]
 
-def cargar_cortes_base(carniceria):
-    for nombre, rendimiento, margen, orden in CORTES_BASE:
+CORTES_POLLO = [
+    ("Pechuga entera",   20.0,  52, 1),
+    ("Suprema",          15.0,  52, 2),
+    ("Muslo",            18.0,  36, 3),
+    ("Pata",             12.0,  29, 4),
+    ("Ala",              10.0,  22, 5),
+    ("Cuarto trasero",   22.0,  30, 6),
+    ("Menudos",           3.0,   4, 7),
+]
+
+
+def _cargar(carniceria, cortes, tipo_animal):
+    for nombre, rendimiento, margen, orden in cortes:
         Corte.objects.get_or_create(
             carniceria=carniceria,
             nombre=nombre,
+            tipo_animal=tipo_animal,
             defaults={
                 "porcentaje_rendimiento": rendimiento,
                 "margen_porcentaje": margen,
                 "orden": orden,
             },
         )
+
+
+def cargar_cortes_base(carniceria):
+    _cargar(carniceria, CORTES_RES, "res")
+
+
+def cargar_cortes_cerdo(carniceria):
+    _cargar(carniceria, CORTES_CERDO, "cerdo")
+
+
+def cargar_cortes_pollo(carniceria):
+    _cargar(carniceria, CORTES_POLLO, "pollo")

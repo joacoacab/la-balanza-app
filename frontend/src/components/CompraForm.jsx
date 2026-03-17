@@ -1,17 +1,29 @@
 import { useState } from 'react'
 import PorcentajesInput from './PorcentajesInput'
 
-const DEFAULTS = {
-  precio_kg: '',
-  peso_media_res: '',
-  porcentaje_carne: '80',
-  porcentaje_hueso: '12',
-  porcentaje_grasa: '8',
-  precio_grasa: '0',
+const DEFAULTS_POR_ANIMAL = {
+  res:   { porcentaje_carne: '80', porcentaje_hueso: '12', porcentaje_grasa: '8' },
+  cerdo: { porcentaje_carne: '75', porcentaje_hueso: '15', porcentaje_grasa: '10' },
+  pollo: { porcentaje_carne: '82', porcentaje_hueso: '0',  porcentaje_grasa: '18' },
 }
 
-export default function CompraForm({ onSubmit, loading, serverError }) {
-  const [form, setForm] = useState(DEFAULTS)
+const LABEL_PESO = {
+  res:   'Peso media res (kg)',
+  cerdo: 'Peso media res (kg)',
+  pollo: 'Peso del cajón (kg)',
+}
+
+function getDefaults(tipoAnimal) {
+  return {
+    precio_kg: '',
+    peso_media_res: '',
+    precio_grasa: '0',
+    ...DEFAULTS_POR_ANIMAL[tipoAnimal] ?? DEFAULTS_POR_ANIMAL.res,
+  }
+}
+
+export default function CompraForm({ onSubmit, loading, serverError, tipoAnimal = 'res' }) {
+  const [form, setForm] = useState(() => getDefaults(tipoAnimal))
   const [localError, setLocalError] = useState(null)
 
   function setField(field, value) {
@@ -23,7 +35,7 @@ export default function CompraForm({ onSubmit, loading, serverError }) {
       return 'El precio por kg es requerido y debe ser mayor a 0.'
     }
     if (!form.peso_media_res || parseFloat(form.peso_media_res) <= 0) {
-      return 'El peso de la media res es requerido y debe ser mayor a 0.'
+      return 'El peso es requerido y debe ser mayor a 0.'
     }
     const suma =
       parseFloat(form.porcentaje_carne || 0) +
@@ -82,7 +94,7 @@ export default function CompraForm({ onSubmit, loading, serverError }) {
           htmlFor="peso_media_res"
           className="block text-sm font-medium text-gray-700 mb-1"
         >
-          Peso media res (kg)
+          {LABEL_PESO[tipoAnimal] ?? LABEL_PESO.res}
         </label>
         <input
           id="peso_media_res"

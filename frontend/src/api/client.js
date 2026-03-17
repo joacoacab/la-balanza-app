@@ -63,6 +63,11 @@ export const api = {
       }),
     desactivar: (id) =>
       request(`/api/v1/cortes/${id}/`, { method: 'DELETE' }),
+    cargarPlantilla: (tipo_animal) =>
+      request('/api/v1/cortes/cargar-plantilla/', {
+        method: 'POST',
+        body: JSON.stringify({ tipo_animal }),
+      }),
   },
   admin: {
     stats: () => request('/api/v1/admin/stats/'),
