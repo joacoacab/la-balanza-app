@@ -10,6 +10,7 @@ import HistorialDetalle from './pages/HistorialDetalle'
 import Precios from './pages/Precios'
 import Bienvenida from './pages/Bienvenida'
 import AdminPanel from './pages/AdminPanel'
+import AdminClienteDetalle from './pages/AdminClienteDetalle'
 import Planes from './pages/Planes'
 import SuscripcionConfirmacion from './pages/SuscripcionConfirmacion'
 import AppLayout from './layouts/AppLayout'
@@ -37,6 +38,14 @@ export default function App() {
           element={
             <StaffRoute>
               <AdminPanel />
+            </StaffRoute>
+          }
+        />
+        <Route
+          path="/admin-saas/clientes/:id"
+          element={
+            <StaffRoute>
+              <AdminClienteDetalle />
             </StaffRoute>
           }
         />

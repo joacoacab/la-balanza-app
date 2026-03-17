@@ -72,6 +72,18 @@ export const api = {
   admin: {
     stats: () => request('/api/v1/admin/stats/'),
     carniceria: () => request('/api/v1/admin/carniceria/'),
+    clienteDetalle: (id) => request(`/api/v1/admin/carniceria/${id}/`),
+    clienteSuscripcion: (id, body) =>
+      request(`/api/v1/admin/carniceria/${id}/suscripcion/`, {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+    preciosGet: () => request('/api/v1/admin/precios/'),
+    preciosPut: (precios) =>
+      request('/api/v1/admin/precios/', {
+        method: 'PUT',
+        body: JSON.stringify(precios),
+      }),
   },
   compras: {
     listar: () => request('/api/v1/compras/'),
@@ -89,5 +101,6 @@ export const api = {
         body: JSON.stringify({ ciclo }),
       }),
     estado: () => request('/api/v1/billing/estado/'),
+    precios: () => request('/api/v1/billing/precios/'),
   },
 }

@@ -1,12 +1,12 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../api/client'
 import { useSuscripcion } from '../hooks/useSuscripcion'
 
-const CICLOS = [
-  { valor: 'mensual',    label: 'Mensual',     precio: '$80.000' },
-  { valor: 'trimestral', label: 'Trimestral',  precio: '$210.000' },
-  { valor: 'anual',      label: 'Anual',       precio: '$720.000' },
+const CICLOS_BASE = [
+  { valor: 'mensual',    label: 'Mensual',     precioFallback: '80000' },
+  { valor: 'trimestral', label: 'Trimestral',  precioFallback: '210000' },
+  { valor: 'anual',      label: 'Anual',       precioFallback: '720000' },
 ]
 
 export default function Planes() {
@@ -15,6 +15,26 @@ export default function Planes() {
   const [cicloSeleccionado, setCicloSeleccionado] = useState('anual')
   const [enviando, setEnviando] = useState(false)
   const [error, setError] = useState(null)
+  const [preciosDB, setPreciosDB] = useState(null)
+  const [preciosCargando, setPreciosCargando] = useState(true)
+
+  useEffect(() => {
+    api.billing
+      .precios()
+      .then(setPreciosDB)
+      .catch(() => setPreciosDB(false))
+      .finally(() => setPreciosCargando(false))
+  }, [])
+
+  function getPrecio(valorCiclo) {
+    if (preciosCargando) return '---'
+    if (!preciosDB) {
+      const fallback = CICLOS_BASE.find((c) => c.valor === valorCiclo)
+      return `$${Number(fallback.precioFallback).toLocaleString('es-AR')}`
+    }
+    const entry = preciosDB.find((p) => p.ciclo === valorCiclo)
+    return entry ? `$${Number(entry.precio).toLocaleString('es-AR')}` : '---'
+  }
 
   async function handleSuscribir() {
     setEnviando(true)
@@ -97,7 +117,7 @@ export default function Planes() {
               </ul>
 
               <div className="space-y-2 mb-4">
-                {CICLOS.map((c) => (
+                {CICLOS_BASE.map((c) => (
                   <label key={c.valor} className="flex items-center gap-2 cursor-pointer">
                     <input
                       type="radio"
@@ -109,7 +129,7 @@ export default function Planes() {
                     />
                     <span className="text-sm text-gray-700">
                       {c.label}{' '}
-                      <span className="font-semibold">{c.precio}</span> ARS
+                      <span className="font-semibold">{getPrecio(c.valor)}</span> ARS
                     </span>
                   </label>
                 ))}

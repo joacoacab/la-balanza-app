@@ -282,6 +282,29 @@ class CompraCorte(models.Model):
         return self.precio_sugerido_kg * self.kg_corte
 
 
+class PlanPrecio(models.Model):
+    CICLO_CHOICES = [
+        ("mensual", "Mensual"),
+        ("trimestral", "Trimestral"),
+        ("anual", "Anual"),
+    ]
+
+    ciclo = models.CharField(max_length=15, choices=CICLO_CHOICES, unique=True)
+    precio = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal("0.01"))],
+    )
+    actualizado_en = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Precio de plan"
+        verbose_name_plural = "Precios de planes"
+
+    def __str__(self):
+        return f"{self.ciclo} — ${self.precio}"
+
+
 def _add_months(d, months):
     """Suma meses a una fecha sin dependencias externas."""
     month = d.month - 1 + months

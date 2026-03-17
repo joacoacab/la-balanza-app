@@ -10,15 +10,12 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
 
-from core.models import Suscripcion
+from core.models import PlanPrecio, Suscripcion
 
 logger = logging.getLogger(__name__)
 
-PRECIOS = {
-    "mensual":     {"monto": 80000,  "frecuencia": 1},
-    "trimestral":  {"monto": 210000, "frecuencia": 3},
-    "anual":       {"monto": 720000, "frecuencia": 12},
-}
+CICLOS_VALIDOS = frozenset(["mensual", "trimestral", "anual"])
+FRECUENCIA_MAP = {"mensual": 1, "trimestral": 3, "anual": 12}
 
 
 class SuscribirView(APIView):
@@ -26,13 +23,11 @@ class SuscribirView(APIView):
 
     def post(self, request):
         ciclo = request.data.get("ciclo")
-        if ciclo not in PRECIOS:
+        if ciclo not in CICLOS_VALIDOS:
             return Response(
                 {"error": "ciclo_invalido", "mensaje": "ciclo debe ser mensual, trimestral o anual."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
-        precio = PRECIOS[ciclo]
 
         if settings.DEBUG and settings.MP_MOCK:
             suscripcion = request.user.carniceria.suscripcion
@@ -41,14 +36,22 @@ class SuscribirView(APIView):
             init_point = f"{settings.APP_URL}/planes/confirmacion?status=approved&mock=true"
             return Response({"init_point": init_point})
 
+        try:
+            plan_precio = PlanPrecio.objects.get(ciclo=ciclo)
+        except PlanPrecio.DoesNotExist:
+            return Response(
+                {"error": "ciclo_invalido", "mensaje": "ciclo no configurado."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         sdk = mercadopago.SDK(settings.MP_ACCESS_TOKEN)
 
         preapproval_data = {
             "reason": f"La Balanza Pro — {ciclo}",
             "auto_recurring": {
-                "frequency": precio["frecuencia"],
+                "frequency": FRECUENCIA_MAP[ciclo],
                 "frequency_type": "months",
-                "transaction_amount": precio["monto"],
+                "transaction_amount": int(plan_precio.precio),
                 "currency_id": "ARS",
             },
             "back_url": f"{settings.APP_URL}/planes/confirmacion",
@@ -92,6 +95,15 @@ class BillingEstadoView(APIView):
             "estado": suscripcion.estado,
             "fecha_vencimiento": suscripcion.fecha_vencimiento,
         })
+
+
+class BillingPreciosView(APIView):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        precios = PlanPrecio.objects.all().order_by("ciclo")
+        return Response([{"ciclo": p.ciclo, "precio": str(p.precio)} for p in precios])
 
 
 class MercadoPagoWebhookView(APIView):
