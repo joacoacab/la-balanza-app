@@ -4,7 +4,7 @@ import { Beef, Ham, Bird } from 'lucide-react'
 import { api } from '../api/client'
 
 const ANIMALES = [
-  { id: 'res',   label: 'Res',   Icon: Beef, fijo: true },
+  { id: 'vaca',   label: 'Vaca',   Icon: Beef, fijo: true },
   { id: 'cerdo', label: 'Cerdo', Icon: Ham,  fijo: false },
   { id: 'pollo', label: 'Pollo', Icon: Bird, fijo: false },
 ]
@@ -54,7 +54,7 @@ export default function Bienvenida() {
         <h1 className="text-3xl font-bold text-gray-900 mb-4">La Balanza</h1>
         <h2 className="text-xl font-semibold text-gray-900 mb-3">¡Bienvenido!</h2>
         <p className="text-gray-600 text-base mb-8">
-          Res ya está listo. ¿Con qué otros animales trabajás?
+          Vaca ya está listo. ¿Con qué otros animales trabajás?
         </p>
 
         <div className="flex gap-3 mb-8">

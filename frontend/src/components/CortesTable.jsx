@@ -1,41 +1,221 @@
+import { useState } from 'react'
+import { api } from '../api/client'
+
 function fmt(str) {
-  return Math.round(parseFloat(str))
+  const n = parseFloat(str)
+  if (Number.isNaN(n)) return '-'
+  return Math.round(n)
     .toString()
     .replace(/\B(?=(\d{3})+(?!\d))/g, '.')
 }
 
-export default function CortesTable({ cortes }) {
+function fmtKg(valor) {
+  const n = numero(valor)
+  if (n === null) return '-'
+  return `${n.toFixed(1)} kg`
+}
+
+function numero(valor) {
+  if (valor === null || valor === undefined || valor === '') return null
+  const n = parseFloat(valor)
+  return Number.isNaN(n) ? null : n
+}
+
+function fmtInput(valor) {
+  const n = numero(valor)
+  if (n === null) return ''
+  return n.toFixed(2).replace(/\.?0+$/, '')
+}
+
+const TOLERANCIA_KG = 0.01
+
+export default function CortesTable({
+  cortes,
+  compra = null,
+  editable = false,
+  onCorteActualizado,
+}) {
+  const [editandoId, setEditandoId] = useState(null)
+  const [form, setForm] = useState({ kg: '', margen: '' })
+  const [guardando, setGuardando] = useState(false)
+  const [error, setError] = useState(null)
+
+  const kgVendibles = numero(compra?.kg_carne_vendible)
+  const kgAsignados = numero(compra?.kg_cortes_total)
+    ?? cortes.reduce((total, corte) => total + (numero(corte.kg_corte) ?? 0), 0)
+  const kgDisponibles = kgVendibles === null ? null : kgVendibles - kgAsignados
+
+  function abrirEdicion(corte) {
+    setEditandoId(corte.id)
+    setForm({
+      kg: fmtInput(corte.kg_corte),
+      margen: fmtInput(corte.margen_porcentaje),
+    })
+    setError(null)
+  }
+
+  function cancelarEdicion() {
+    setEditandoId(null)
+    setForm({ kg: '', margen: '' })
+    setError(null)
+  }
+
+  async function guardarEdicion(corte) {
+    const kgNuevo = numero(form.kg)
+    const margenNuevo = numero(form.margen)
+    const kgActual = numero(corte.kg_corte) ?? 0
+    const pesoCompra = numero(compra?.peso_media_res)
+
+    if (kgNuevo === null || kgNuevo < 0) {
+      setError('Ingresá kilos válidos para el corte.')
+      return
+    }
+    if (margenNuevo === null || margenNuevo < 0) {
+      setError('Ingresá un margen válido.')
+      return
+    }
+    if (pesoCompra === null || pesoCompra <= 0 || !compra?.id) {
+      setError('No se pudo editar este corte. Falta información de la compra.')
+      return
+    }
+
+    const nuevoTotal = kgAsignados - kgActual + kgNuevo
+    if (kgVendibles !== null && nuevoTotal > kgVendibles + TOLERANCIA_KG) {
+      setError('No podés asignar más kilos que la carne vendible disponible.')
+      return
+    }
+
+    const porcentaje = (kgNuevo / pesoCompra) * 100
+
+    setGuardando(true)
+    setError(null)
+    try {
+      await api.compraCortes.editar(compra.id, corte.id, {
+        porcentaje_rendimiento: porcentaje.toFixed(2),
+        margen_porcentaje: margenNuevo.toFixed(2),
+      })
+      await onCorteActualizado?.()
+      cancelarEdicion()
+    } catch (err) {
+      if (err.status === 400) {
+        setError('Revisá los kilos y el margen ingresados.')
+      } else {
+        setError('No se pudo guardar el corte. Intentá de nuevo.')
+      }
+    } finally {
+      setGuardando(false)
+    }
+  }
+
   return (
     <div>
       <h2 className="text-base font-semibold text-gray-900 mb-3">Cortes</h2>
-      <div className="space-y-3">
+      {compra && (
+        <div className="bg-white rounded-xl border border-gray-200 p-4 mb-3">
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-600">Asignado</span>
+            <span className="font-medium text-gray-900">
+              {fmtKg(kgAsignados)}{kgVendibles !== null ? ` / ${fmtKg(kgVendibles)}` : ''}
+            </span>
+          </div>
+          <div className="flex justify-between text-sm mt-1">
+            <span className="text-gray-600">Disponible</span>
+            <span className="font-medium text-gray-900">{fmtKg(kgDisponibles)}</span>
+          </div>
+        </div>
+      )}
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(170px,1fr))] gap-3">
         {cortes.map((corte) => (
           <div
             key={corte.id}
-            className="bg-white rounded-xl border border-gray-200 p-4"
+            className="bg-white rounded-xl border border-gray-200 p-4 min-h-[148px] flex flex-col"
           >
-            <div className="flex justify-between items-baseline mb-2">
-              <span className="text-base font-medium text-gray-900">
+            <div className="flex justify-between items-start gap-3 mb-3">
+              <span className="text-base font-medium text-gray-900 leading-snug">
                 {corte.nombre}
               </span>
-              <span className="text-sm text-gray-500">
-                {parseFloat(corte.kg_corte).toFixed(1)} kg
+              <span className="shrink-0 text-sm font-medium text-gray-700">
+                {fmtKg(corte.kg_corte)}
               </span>
             </div>
-            <div className="flex justify-between text-sm text-gray-700">
-              <span>
-                Mín:{' '}
-                <span className="font-medium">
+            <div className="space-y-2 text-sm">
+              <div>
+                <p className="text-gray-500">Mínimo</p>
+                <p className="font-medium text-gray-900">
                   ${fmt(corte.precio_minimo_kg)}/kg
-                </span>
-              </span>
-              <span>
-                Sug:{' '}
-                <span className="font-medium">
+                </p>
+              </div>
+              <div>
+                <p className="text-gray-500">Sugerido</p>
+                <p className="font-medium text-gray-900">
                   ${fmt(corte.precio_sugerido_kg)}/kg
-                </span>
-              </span>
+                </p>
+              </div>
             </div>
+            {editable && editandoId !== corte.id && (
+              <button
+                type="button"
+                onClick={() => abrirEdicion(corte)}
+                className="mt-4 w-full border border-gray-300 text-gray-700 rounded-lg px-3 py-2 text-sm font-medium min-h-[40px]"
+              >
+                Editar
+              </button>
+            )}
+            {editable && editandoId === corte.id && (
+              <div className="mt-4 space-y-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                    Kg del corte
+                  </label>
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    min="0"
+                    step="0.01"
+                    value={form.kg}
+                    disabled={guardando}
+                    onChange={(e) => setForm((prev) => ({ ...prev, kg: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-gray-900 disabled:bg-gray-100"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                    Margen %
+                  </label>
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    min="0"
+                    step="0.01"
+                    value={form.margen}
+                    disabled={guardando}
+                    onChange={(e) => setForm((prev) => ({ ...prev, margen: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-gray-900 disabled:bg-gray-100"
+                  />
+                </div>
+                {error && (
+                  <p className="text-sm text-red-700">{error}</p>
+                )}
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={cancelarEdicion}
+                    disabled={guardando}
+                    className="flex-1 border border-gray-300 text-gray-700 rounded-lg px-3 py-2 text-sm font-medium min-h-[40px] disabled:opacity-50"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => guardarEdicion(corte)}
+                    disabled={guardando}
+                    className="flex-1 bg-gray-900 text-white rounded-lg px-3 py-2 text-sm font-medium min-h-[40px] disabled:opacity-50"
+                  >
+                    {guardando ? 'Guardando...' : 'Guardar'}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         ))}
       </div>

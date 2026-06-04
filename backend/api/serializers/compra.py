@@ -71,6 +71,9 @@ class CompraDetailSerializer(serializers.ModelSerializer):
     costo_neto = serializers.SerializerMethodField()
     kg_carne_vendible = serializers.SerializerMethodField()
     costo_por_kg_vendible = serializers.SerializerMethodField()
+    kg_cortes_total = serializers.SerializerMethodField()
+    diferencia_kg = serializers.SerializerMethodField()
+    diferencia_porcentaje = serializers.SerializerMethodField()
     cortes = CompraCorteSerializer(many=True, read_only=True)
 
     class Meta:
@@ -90,6 +93,9 @@ class CompraDetailSerializer(serializers.ModelSerializer):
             "costo_neto",
             "kg_carne_vendible",
             "costo_por_kg_vendible",
+            "kg_cortes_total",
+            "diferencia_kg",
+            "diferencia_porcentaje",
             "notas",
             "created_at",
             "cortes",
@@ -109,3 +115,12 @@ class CompraDetailSerializer(serializers.ModelSerializer):
 
     def get_costo_por_kg_vendible(self, obj):
         return _redondear(obj.costo_por_kg_vendible)
+
+    def get_kg_cortes_total(self, obj):
+        return _redondear(obj.kg_cortes_total)
+
+    def get_diferencia_kg(self, obj):
+        return _redondear(obj.diferencia_kg)
+
+    def get_diferencia_porcentaje(self, obj):
+        return _redondear(obj.diferencia_porcentaje)

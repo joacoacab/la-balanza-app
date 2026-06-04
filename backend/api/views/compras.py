@@ -2,20 +2,22 @@ from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from api.permissions import PuedeCrearCompra
+from api.permissions import IsTenantObjectOwner, PuedeCrearCompra
 from api.serializers.compra import (
     CompraCreateSerializer,
     CompraDetailSerializer,
     CompraListSerializer,
 )
 from core.models import Compra
+from core.tenancy import TenantScopedMixin
 
 
-class CompraListCreateView(generics.GenericAPIView):
-    permission_classes = [IsAuthenticated, PuedeCrearCompra]
+class CompraListCreateView(TenantScopedMixin, generics.GenericAPIView):
+    serializer_class = CompraListSerializer
+    permission_classes = [IsAuthenticated, PuedeCrearCompra, IsTenantObjectOwner]
 
     def get_queryset(self):
-        qs = Compra.objects.filter(carniceria=self.request.user.carniceria)
+        qs = super().get_queryset()
         try:
             limite = self.request.user.carniceria.suscripcion.compras_visibles_limit
         except Exception:
@@ -35,8 +37,6 @@ class CompraListCreateView(generics.GenericAPIView):
         return Response(CompraListSerializer(compra).data, status=status.HTTP_201_CREATED)
 
 
-class CompraRetrieveView(generics.RetrieveAPIView):
+class CompraRetrieveView(TenantScopedMixin, generics.RetrieveAPIView):
     serializer_class = CompraDetailSerializer
-
-    def get_queryset(self):
-        return Compra.objects.filter(carniceria=self.request.user.carniceria)
+    permission_classes = [IsAuthenticated, IsTenantObjectOwner]

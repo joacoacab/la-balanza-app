@@ -7,7 +7,7 @@
 
 ## Objetivo
 
-Pantalla principal del producto. El carnicero ingresa los datos de la media res recién comprada y obtiene en segundos el precio mínimo y sugerido de venta por corte.
+Pantalla principal del producto. El carnicero ingresa los datos de la media vaca recién comprada y obtiene en segundos el precio mínimo y sugerido de venta por corte.
 
 El flujo completo dura menos de 30 segundos: tipear los datos → tocar "Calcular" → ver precios.
 
@@ -29,7 +29,7 @@ El flujo completo dura menos de 30 segundos: tipear los datos → tocar "Calcula
 │  │                     │    │
 │  └─────────────────────┘    │
 │                             │
-│  Peso media res (kg)        │
+│  Peso media vaca (kg)        │
 │  ┌─────────────────────┐    │
 │  │                     │    │
 │  └─────────────────────┘    │

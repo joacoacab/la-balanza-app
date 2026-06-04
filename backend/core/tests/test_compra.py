@@ -38,6 +38,76 @@ def test_compra_calculo_costo_valores_concretos(compra_base):
     assert compra_base.costo_por_kg_vendible == expected_costo_kg
 
 
+@pytest.mark.django_db
+def test_compra_metricas_despiece_consistente(carniceria):
+    baker.make(
+        Corte,
+        carniceria=carniceria,
+        nombre="Corte A",
+        activo=True,
+        porcentaje_rendimiento=Decimal("30.00"),
+        margen_porcentaje=Decimal("20.00"),
+    )
+    baker.make(
+        Corte,
+        carniceria=carniceria,
+        nombre="Corte B",
+        activo=True,
+        porcentaje_rendimiento=Decimal("30.00"),
+        margen_porcentaje=Decimal("20.00"),
+    )
+    compra = baker.make(
+        Compra,
+        carniceria=carniceria,
+        peso_media_res=Decimal("100.000"),
+        precio_kg=Decimal("1000.00"),
+        porcentaje_carne=Decimal("60.00"),
+        porcentaje_hueso=Decimal("30.00"),
+        porcentaje_grasa=Decimal("10.00"),
+        precio_grasa=Decimal("200.00"),
+    )
+
+    assert compra.kg_carne_vendible == Decimal("60.0000")
+    assert compra.kg_cortes_total == Decimal("60.0000")
+    assert compra.diferencia_kg == Decimal("0.0000")
+    assert compra.diferencia_porcentaje == Decimal("0")
+
+
+@pytest.mark.django_db
+def test_compra_metricas_despiece_inconsistente(carniceria):
+    baker.make(
+        Corte,
+        carniceria=carniceria,
+        nombre="Corte A",
+        activo=True,
+        porcentaje_rendimiento=Decimal("25.00"),
+        margen_porcentaje=Decimal("20.00"),
+    )
+    baker.make(
+        Corte,
+        carniceria=carniceria,
+        nombre="Corte B",
+        activo=True,
+        porcentaje_rendimiento=Decimal("25.00"),
+        margen_porcentaje=Decimal("20.00"),
+    )
+    compra = baker.make(
+        Compra,
+        carniceria=carniceria,
+        peso_media_res=Decimal("100.000"),
+        precio_kg=Decimal("1000.00"),
+        porcentaje_carne=Decimal("60.00"),
+        porcentaje_hueso=Decimal("30.00"),
+        porcentaje_grasa=Decimal("10.00"),
+        precio_grasa=Decimal("200.00"),
+    )
+
+    assert compra.kg_carne_vendible == Decimal("60.0000")
+    assert compra.kg_cortes_total == Decimal("50.0000")
+    assert compra.diferencia_kg == Decimal("-10.0000")
+    assert compra.diferencia_porcentaje == Decimal("-16.66666666666666666666666667")
+
+
 # ── CA-04 ──────────────────────────────────────────────────────────────────────
 
 @pytest.mark.django_db

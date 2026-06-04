@@ -1,6 +1,6 @@
 from core.models import Corte
 
-CORTES_RES = [
+CORTES_VACA = [
     ("Nalga",             8.0,  52, 1),
     ("Peceto",            3.5,  52, 2),
     ("Bife de Lomo",      2.5,  45, 3),
@@ -66,7 +66,11 @@ def _cargar(carniceria, cortes, tipo_animal):
 
 
 def cargar_cortes_base(carniceria):
-    _cargar(carniceria, CORTES_RES, "res")
+    _cargar(carniceria, CORTES_VACA, "vaca")
+
+
+def cargar_cortes_vaca(carniceria):
+    cargar_cortes_base(carniceria)
 
 
 def cargar_cortes_cerdo(carniceria):

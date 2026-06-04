@@ -10,12 +10,59 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
 
-from core.models import PlanPrecio, Suscripcion
+from core.models import Carniceria, PlanPrecio, Suscripcion
 
 logger = logging.getLogger(__name__)
 
 CICLOS_VALIDOS = frozenset(["mensual", "trimestral", "anual"])
 FRECUENCIA_MAP = {"mensual": 1, "trimestral": 3, "anual": 12}
+
+
+def _get_suscripcion_usuario(user):
+    try:
+        return user.carniceria.suscripcion, None
+    except (AttributeError, Carniceria.DoesNotExist, Suscripcion.DoesNotExist) as e:
+        logger.warning("Suscripción no disponible para user_id=%s: %s", getattr(user, "id", None), e)
+        return None, Response(
+            {
+                "error": "suscripcion_no_disponible",
+                "mensaje": "No se encontró una suscripción para este usuario.",
+            },
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+
+def _frecuencia_coincide(mp_data, ciclo):
+    if ciclo not in FRECUENCIA_MAP:
+        logger.error("Suscripción con ciclo inválido antes de activar: %s", ciclo)
+        return False
+
+    auto_recurring = mp_data.get("auto_recurring") or {}
+    frequency = auto_recurring.get("frequency")
+    frequency_type = auto_recurring.get("frequency_type")
+
+    if frequency is None or frequency_type is None:
+        logger.error("PreApproval sin auto_recurring completo para ciclo=%s", ciclo)
+        return False
+
+    try:
+        frequency = int(frequency)
+    except (TypeError, ValueError):
+        logger.error("PreApproval con frequency inválida: %s", frequency)
+        return False
+
+    expected_frequency = FRECUENCIA_MAP[ciclo]
+    if frequency != expected_frequency or frequency_type != "months":
+        logger.error(
+            "PreApproval con frecuencia inesperada: ciclo=%s expected=%s/months got=%s/%s",
+            ciclo,
+            expected_frequency,
+            frequency,
+            frequency_type,
+        )
+        return False
+
+    return True
 
 
 class SuscribirView(APIView):
@@ -29,8 +76,11 @@ class SuscribirView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        suscripcion, error_response = _get_suscripcion_usuario(request.user)
+        if error_response is not None:
+            return error_response
+
         if settings.DEBUG and settings.MP_MOCK:
-            suscripcion = request.user.carniceria.suscripcion
             suscripcion.ciclo = ciclo
             suscripcion.save(update_fields=["ciclo"])
             init_point = f"{settings.APP_URL}/planes/confirmacion?status=approved&mock=true"
@@ -76,7 +126,6 @@ class SuscribirView(APIView):
             )
 
         mp_response = result["response"]
-        suscripcion = request.user.carniceria.suscripcion
         suscripcion.mp_preapproval_id = mp_response["id"]
         suscripcion.ciclo = ciclo
         suscripcion.save(update_fields=["mp_preapproval_id", "ciclo"])
@@ -88,7 +137,10 @@ class BillingEstadoView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        suscripcion = request.user.carniceria.suscripcion
+        suscripcion, error_response = _get_suscripcion_usuario(request.user)
+        if error_response is not None:
+            return error_response
+
         return Response({
             "plan": suscripcion.plan,
             "ciclo": suscripcion.ciclo,
@@ -149,6 +201,9 @@ class MercadoPagoWebhookView(APIView):
         except Suscripcion.DoesNotExist:
             logger.warning("No se encontró suscripción para preapproval_id=%s", preapproval_id)
             return
+        except Suscripcion.MultipleObjectsReturned:
+            logger.error("Preapproval_id duplicado en suscripciones: %s", preapproval_id)
+            return
 
         sdk = mercadopago.SDK(settings.MP_ACCESS_TOKEN)
         try:
@@ -165,6 +220,13 @@ class MercadoPagoWebhookView(APIView):
         mp_status = mp_data.get("status")
 
         if mp_status == "authorized":
+            if not suscripcion.ciclo:
+                logger.error("Suscripción %s sin ciclo para preapproval_id=%s", suscripcion.id, preapproval_id)
+                return
+
+            if not _frecuencia_coincide(mp_data, suscripcion.ciclo):
+                return
+
             date_created_str = mp_data.get("date_created", "")
             try:
                 fecha_inicio = datetime.fromisoformat(
@@ -173,7 +235,7 @@ class MercadoPagoWebhookView(APIView):
             except (ValueError, AttributeError):
                 fecha_inicio = date.today()
 
-            suscripcion.activar_pro(ciclo=suscripcion.ciclo or "mensual", fecha_inicio=fecha_inicio)
+            suscripcion.activar_pro(ciclo=suscripcion.ciclo, fecha_inicio=fecha_inicio)
 
         elif mp_status in ("paused", "cancelled"):
             suscripcion.estado = "cancelada"

@@ -6,8 +6,11 @@ from decimal import Decimal
 
 import pytest
 from model_bakery import baker
+from rest_framework.authtoken.models import Token
+from rest_framework.test import APIClient
 
-from core.models import Compra, CompraCorte, Corte
+from core.models import Carniceria, Compra, CompraCorte, Corte
+from users.models import User
 
 PAYLOAD_COMPRA = {
     "peso_media_res": "100.000",
@@ -19,7 +22,16 @@ PAYLOAD_COMPRA = {
     "fecha": "2026-03-14",
 }
 
-CAMPOS_LISTA = {"id", "fecha", "peso_media_res", "precio_kg", "costo_total", "costo_neto", "created_at"}
+CAMPOS_LISTA = {
+    "id",
+    "tipo_animal",
+    "fecha",
+    "peso_media_res",
+    "precio_kg",
+    "costo_total",
+    "costo_neto",
+    "created_at",
+}
 
 
 # ── extra ───────────────────────────────────────────────────────────────────────
@@ -31,6 +43,7 @@ def test_listar_compras(client_usuario, compra_base):
     assert resp.status_code == 200
     assert len(resp.data) == 1
     assert set(resp.data[0].keys()) == CAMPOS_LISTA
+    assert resp.data[0]["tipo_animal"] == "vaca"
 
 
 @pytest.mark.django_db
@@ -60,12 +73,49 @@ def test_crear_compra_porcentajes_validos(client_usuario, usuario):
     resp = client_usuario.post("/api/v1/compras/", PAYLOAD_COMPRA, format="json")
 
     assert resp.status_code == 201
+    assert resp.data["tipo_animal"] == "vaca"
     assert resp.data["costo_total"] == "100000.00"
     assert resp.data["costo_neto"] == "98000.00"
     assert set(resp.data.keys()) == CAMPOS_LISTA
 
     compra = Compra.objects.get(pk=resp.data["id"])
     assert compra.carniceria == usuario.carniceria
+
+
+@pytest.mark.django_db
+def test_crear_compra_sin_autenticacion_devuelve_401(api_client):
+    resp = api_client.post("/api/v1/compras/", PAYLOAD_COMPRA, format="json")
+
+    assert resp.status_code == 401
+    assert Compra.objects.count() == 0
+
+
+@pytest.mark.django_db
+def test_crear_compra_usuario_sin_carniceria_falla_cerrado():
+    user = baker.make(User, username="sin-carniceria")
+    token = Token.objects.create(user=user)
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Token {token.key}")
+
+    resp = client.post("/api/v1/compras/", PAYLOAD_COMPRA, format="json")
+
+    assert resp.status_code == 403
+    assert Compra.objects.count() == 0
+
+
+@pytest.mark.django_db
+def test_crear_compra_usuario_sin_suscripcion_falla_cerrado():
+    user = baker.make(User, username="sin-suscripcion")
+    carniceria = baker.make(Carniceria, user=user)
+    carniceria.suscripcion.delete()
+    token = Token.objects.create(user=user)
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Token {token.key}")
+
+    resp = client.post("/api/v1/compras/", PAYLOAD_COMPRA, format="json")
+
+    assert resp.status_code == 403
+    assert Compra.objects.count() == 0
 
 
 # ── CA-08 ──────────────────────────────────────────────────────────────────────
@@ -122,6 +172,16 @@ def test_detalle_compra_incluye_cortes_y_precios(client_usuario, compra_con_lomo
     assert corte["precio_sugerido_kg"] == "2450.00"
     assert corte["precio_minimo_total"] == "8166.67"
     assert corte["precio_sugerido_total"] == "12250.00"
+
+
+@pytest.mark.django_db
+def test_detalle_compra_incluye_metricas_despiece(client_usuario, compra_con_lomo):
+    resp = client_usuario.get(f"/api/v1/compras/{compra_con_lomo.id}/")
+
+    assert resp.status_code == 200
+    assert resp.data["kg_cortes_total"] == "5.00"
+    assert resp.data["diferencia_kg"] == "-55.00"
+    assert resp.data["diferencia_porcentaje"] == "-91.67"
 
 
 # ── CA-06 (detalle) ────────────────────────────────────────────────────────────

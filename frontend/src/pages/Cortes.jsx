@@ -6,9 +6,9 @@ import CorteCard from '../components/CorteCard'
 import CorteFormModal from '../components/CorteFormModal'
 import ConfirmDialog from '../components/ConfirmDialog'
 
-const ORDEN_ANIMAL = ['res', 'cerdo', 'pollo']
-const LABEL_ANIMAL = { res: 'Res', cerdo: 'Cerdo', pollo: 'Pollo' }
-const ICON_ANIMAL = { res: Beef, cerdo: Ham, pollo: Bird }
+const ORDEN_ANIMAL = ['vaca', 'cerdo', 'pollo']
+const LABEL_ANIMAL = { vaca: 'Vaca', cerdo: 'Cerdo', pollo: 'Pollo' }
+const ICON_ANIMAL = { vaca: Beef, cerdo: Ham, pollo: Bird }
 
 function VolverBtn() {
   const navigate = useNavigate()
@@ -44,7 +44,7 @@ export default function Cortes() {
         setTabActivo((prev) => {
           const animalesActivos = ORDEN_ANIMAL.filter((a) => data.some((c) => c.tipo_animal === a))
           if (prev && animalesActivos.includes(prev)) return prev
-          return animalesActivos[0] ?? 'res'
+          return animalesActivos[0] ?? 'vaca'
         })
       })
       .catch((err) => {
@@ -151,7 +151,7 @@ export default function Cortes() {
 
   return (
     <div className="px-6 py-8">
-      <div className="max-w-sm mx-auto">
+      <div className="max-w-5xl mx-auto">
         <VolverBtn />
         <h2 className="text-xl font-semibold text-gray-900 mb-6">Mis cortes</h2>
 
@@ -205,7 +205,7 @@ export default function Cortes() {
               </p>
             )}
 
-            <div className="space-y-3 mb-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 mb-4">
               {cortesDeTrab.map((corte) => (
                 <CorteCard
                   key={corte.id}

@@ -100,7 +100,7 @@ export default function Planes() {
             <div className="bg-white border-2 border-gray-200 rounded-xl p-5">
               <h3 className="font-bold text-gray-600 text-lg mb-3">FREE</h3>
               <ul className="text-sm text-gray-500 space-y-1 mb-4">
-                <li>• Solo res</li>
+                <li>• Solo vaca</li>
                 <li>• Últimas 5 compras</li>
                 <li>• Sin PDF</li>
               </ul>
@@ -111,7 +111,7 @@ export default function Planes() {
             <div className="bg-white border-2 border-blue-500 rounded-xl p-5">
               <h3 className="font-bold text-blue-700 text-lg mb-3">PRO</h3>
               <ul className="text-sm text-gray-600 space-y-1 mb-4">
-                <li>• Res, cerdo y pollo</li>
+                <li>• Vaca, cerdo y pollo</li>
                 <li>• Historial completo</li>
                 <li>• PDF ilimitados</li>
               </ul>

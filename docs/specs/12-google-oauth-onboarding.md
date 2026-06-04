@@ -1,7 +1,7 @@
 # Spec 12 — Login con Google y Onboarding automático
 
 ## Objetivo
-Permitir que el usuario entre a La Balanza con su cuenta de Google y, en el momento de crear cuenta (por cualquier método), cargar automáticamente los 25 cortes de res como plantilla de inicio.
+Permitir que el usuario entre a La Balanza con su cuenta de Google y, en el momento de crear cuenta (por cualquier método), cargar automáticamente los 25 cortes de vaca como plantilla de inicio.
 
 ---
 
@@ -162,7 +162,7 @@ Solo cuando la respuesta del backend incluye `es_primera_vez: true`. Aplica a am
 │                                     │
 │  ¡Bienvenido!                       │
 │                                     │
-│  Ya cargamos los 25 cortes de res   │
+│  Ya cargamos los 25 cortes de vaca   │
 │  para que empieces ahora mismo.     │
 │                                     │
 │                                     │

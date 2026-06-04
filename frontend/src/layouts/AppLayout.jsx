@@ -3,16 +3,24 @@ import { useAuth } from '../auth/useAuth'
 import PlanBadge from '../components/PlanBadge'
 
 export default function AppLayout() {
-  const { logout } = useAuth()
+  const { logout, user } = useAuth()
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <header className="flex items-center justify-between px-6 py-4 bg-white border-b border-gray-200">
+      <header className="flex flex-wrap items-center justify-between px-6 py-4 bg-white border-b border-gray-200">
         <div className="flex items-center gap-3">
           <h1 className="text-xl font-bold text-gray-900">La Balanza</h1>
           <PlanBadge />
         </div>
         <div className="flex items-center gap-4">
+          {user?.is_staff && (
+            <Link
+              to="/admin-saas/"
+              className="text-sm text-gray-500 min-h-[44px] flex items-center"
+            >
+              Panel admin
+            </Link>
+          )}
           <Link
             to="/planes"
             className="text-sm text-gray-500 min-h-[44px] flex items-center"

@@ -10,7 +10,7 @@ class CorteSerializer(serializers.ModelSerializer):
 
     def validate_nombre(self, value):
         carniceria = self.context["request"].user.carniceria
-        tipo_animal = self.initial_data.get("tipo_animal", "res")
+        tipo_animal = self.initial_data.get("tipo_animal", "vaca")
         qs = Corte.objects.filter(carniceria=carniceria, nombre=value, tipo_animal=tipo_animal)
         if self.instance:
             qs = qs.exclude(pk=self.instance.pk)

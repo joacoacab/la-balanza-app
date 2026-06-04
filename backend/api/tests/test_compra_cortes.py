@@ -7,7 +7,7 @@ from decimal import Decimal
 import pytest
 from model_bakery import baker
 
-from core.models import Compra
+from core.models import Compra, Corte
 
 
 # ── CA-11 ──────────────────────────────────────────────────────────────────────
@@ -51,6 +51,46 @@ def test_patch_compra_corte_otra_carniceria_devuelve_404(client_otro_usuario, co
     assert resp.status_code == 404
     compra_corte.refresh_from_db()
     assert compra_corte.margen_porcentaje == Decimal("50.00")
+
+
+@pytest.mark.django_db
+def test_patch_compra_corte_id_de_otra_carniceria_en_compra_propia_devuelve_404(
+    client_usuario,
+    otro_usuario,
+    compra_con_lomo,
+):
+    compra_corte_propio = compra_con_lomo.cortes.get(nombre="Lomo")
+    corte_otro = baker.make(
+        Corte,
+        carniceria=otro_usuario.carniceria,
+        nombre="Asado",
+        porcentaje_rendimiento=Decimal("10.00"),
+        margen_porcentaje=Decimal("30.00"),
+        activo=True,
+    )
+    compra_otro = baker.make(
+        Compra,
+        carniceria=otro_usuario.carniceria,
+        peso_media_res=Decimal("100.000"),
+        precio_kg=Decimal("1000.00"),
+        porcentaje_carne=Decimal("60.00"),
+        porcentaje_hueso=Decimal("30.00"),
+        porcentaje_grasa=Decimal("10.00"),
+        precio_grasa=Decimal("200.00"),
+    )
+    compra_corte_otro = compra_otro.cortes.get(nombre=corte_otro.nombre)
+
+    resp = client_usuario.patch(
+        f"/api/v1/compras/{compra_con_lomo.id}/cortes/{compra_corte_otro.id}/",
+        {"margen_porcentaje": "60.00"},
+        format="json",
+    )
+
+    assert resp.status_code == 404
+    compra_corte_otro.refresh_from_db()
+    assert compra_corte_otro.margen_porcentaje == Decimal("30.00")
+    compra_corte_propio.refresh_from_db()
+    assert compra_corte_propio.margen_porcentaje == Decimal("50.00")
 
 
 # ── extra ───────────────────────────────────────────────────────────────────────

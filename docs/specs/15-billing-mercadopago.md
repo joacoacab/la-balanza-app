@@ -23,7 +23,7 @@ La Balanza necesita monetizarse. Actualmente todos los usuarios tienen acceso co
 
 ### Límites del plan Free
 
-- Solo puede crear compras de **res** (no cerdo, no pollo)
+- Solo puede crear compras de **vaca** (no cerdo, no pollo)
 - Máximo **5 compras** visibles en el historial (las más recientes)
 - Sin acceso a generación de **PDF**
 
@@ -47,7 +47,7 @@ La Balanza necesita monetizarse. Actualmente todos los usuarios tienen acceso co
 │  ┌──────────────┐   ┌───────────────────────┐   │
 │  │     FREE     │   │         PRO           │   │
 │  │              │   │                       │   │
-│  │  • Solo res  │   │  • Res, cerdo, pollo  │   │
+│  │  • Solo vaca  │   │  • Vaca, cerdo, pollo  │   │
 │  │  • 5 compras │   │  • Historial completo │   │
 │  │  • Sin PDF   │   │  • PDF ilimitados     │   │
 │  │              │   │                       │   │
@@ -285,7 +285,7 @@ Crear una DRF permission class en `api/permissions.py`:
 ```
 class PuedeCrearCompra(BasePermission):
     def has_permission(self, request, view):
-        animal = request.data.get('animal', 'res')
+        animal = request.data.get('animal', 'vaca')
         suscripcion = request.user.carniceria.suscripcion
         puede, mensaje = suscripcion.puede_crear_compra(animal)
         if not puede:
@@ -409,7 +409,7 @@ Al crear la migración, todos los usuarios existentes deben quedar con `plan='fr
 
 ### CA-4: Bloqueo plan Free
 - [ ] Un usuario Free que intenta crear una compra de cerdo recibe `403` con `error: "plan_insuficiente"`
-- [ ] Un usuario Free que crea una compra de res puede hacerlo normalmente
+- [ ] Un usuario Free que crea una compra de vaca puede hacerlo normalmente
 - [ ] El historial de un usuario Free muestra máximo 5 compras
 - [ ] Un usuario Free que intenta generar PDF recibe `403`
 

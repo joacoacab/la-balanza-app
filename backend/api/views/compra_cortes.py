@@ -1,32 +1,18 @@
 from rest_framework import generics, mixins
-from rest_framework.exceptions import NotFound
+from rest_framework.permissions import IsAuthenticated
 
+from api.permissions import IsTenantObjectOwner
 from api.serializers.compra_corte import CompraCorteSerializer
-from core.models import Compra, CompraCorte
+from core.tenancy import TenantScopedMixin
 
 
-class CompraCorteUpdateView(mixins.UpdateModelMixin, generics.GenericAPIView):
+class CompraCorteUpdateView(TenantScopedMixin, mixins.UpdateModelMixin, generics.GenericAPIView):
     serializer_class = CompraCorteSerializer
+    permission_classes = [IsAuthenticated, IsTenantObjectOwner]
+    lookup_url_kwarg = "corte_pk"
 
-    def get_object(self):
-        try:
-            compra = Compra.objects.get(
-                pk=self.kwargs["compra_pk"],
-                carniceria=self.request.user.carniceria,
-            )
-        except Compra.DoesNotExist:
-            raise NotFound()
-
-        try:
-            compra_corte = CompraCorte.objects.get(
-                pk=self.kwargs["corte_pk"],
-                compra=compra,
-            )
-        except CompraCorte.DoesNotExist:
-            raise NotFound()
-
-        self.check_object_permissions(self.request, compra_corte)
-        return compra_corte
+    def get_queryset(self):
+        return super().get_queryset().filter(compra_id=self.kwargs["compra_pk"])
 
     def patch(self, request, *args, **kwargs):
         return self.partial_update(request, *args, **kwargs)

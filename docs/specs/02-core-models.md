@@ -15,8 +15,8 @@ Definir los cuatro modelos de `core` con sus campos, propiedades calculadas, reg
 
 | Término | Definición |
 |---------|-----------|
-| Media res | Mitad de una res vacuna comprada al proveedor |
-| Rendimiento | % del peso total de la media res que representa un corte |
+| Media vaca | Mitad de una vaca vacuna comprada al proveedor |
+| Rendimiento | % del peso total de la media vaca que representa un corte |
 | Carne vendible | % del peso total que se puede vender como cortes (excluye hueso y grasa) |
 | Hueso | % del peso total; no genera ingreso, su costo se absorbe en los cortes |
 | Grasa | % del peso total; se vende a precio bajo, su ingreso reduce el costo neto |
@@ -73,7 +73,7 @@ Plantilla de un corte para una carnicería. Define el rendimiento y margen por d
 
 - El `nombre` debe ser único por carnicería (`UniqueConstraint` en `nombre` + `carniceria`).
 - Solo los cortes con `activo=True` se copian al crear una `Compra`.
-- El `porcentaje_rendimiento` expresa cuánto pesa este corte como porcentaje del **total de la media res** (no del porcentaje de carne vendible).
+- El `porcentaje_rendimiento` expresa cuánto pesa este corte como porcentaje del **total de la media vaca** (no del porcentaje de carne vendible).
 - El `margen_porcentaje` es el margen de ganancia base, expresado en porcentaje (ej: `30` = 30%).
 
 ### Meta
@@ -93,7 +93,7 @@ constraints:
 
 ## Modelo: Compra
 
-Representa la compra de una media res. Contiene los datos de peso, precios y distribución porcentual. Al crearse, genera automáticamente los `CompraCorte` copiando los cortes activos de la plantilla.
+Representa la compra de una media vaca. Contiene los datos de peso, precios y distribución porcentual. Al crearse, genera automáticamente los `CompraCorte` copiando los cortes activos de la plantilla.
 
 ### Campos
 
@@ -204,7 +204,7 @@ Instancia editable de un corte dentro de una compra concreta. Se genera automát
 ### Reglas de negocio
 
 - El `nombre` debe ser único por compra (`UniqueConstraint` en `nombre` + `compra`).
-- El `porcentaje_rendimiento` expresa cuánto pesa este corte como porcentaje del **total de la media res** (igual que en la plantilla).
+- El `porcentaje_rendimiento` expresa cuánto pesa este corte como porcentaje del **total de la media vaca** (igual que en la plantilla).
 - La suma de `porcentaje_rendimiento` de todos los `CompraCorte` de una misma `Compra` **debería** ser igual al `porcentaje_carne` de la compra. No se impone como constraint de DB (imposible en SQL estándar), pero sí se advierte a nivel de aplicación.
 - El carnicero puede ajustar `porcentaje_rendimiento` y `margen_porcentaje` de cada `CompraCorte` sin afectar la plantilla original.
 
@@ -213,7 +213,7 @@ Instancia editable de un corte dentro de una compra concreta. Se genera automát
 ---
 
 #### `kg_corte`
-Kilogramos de este corte en la media res.
+Kilogramos de este corte en la media vaca.
 
 ```
 kg_corte = compra.peso_media_res × (porcentaje_rendimiento / 100)

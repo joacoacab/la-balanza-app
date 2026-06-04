@@ -9,9 +9,9 @@ import CortesTable from '../components/CortesTable'
 import BloqueoPlanBanner from '../components/BloqueoPlanBanner'
 import { generarListaPreciosPdf } from '../utils/generarListaPreciosPdf'
 
-const ICON_ANIMAL = { res: Beef, cerdo: Ham, pollo: Bird }
-const LABEL_ANIMAL = { res: 'Res', cerdo: 'Cerdo', pollo: 'Pollo' }
-const ORDEN_ANIMAL = ['res', 'cerdo', 'pollo']
+const ICON_ANIMAL = { vaca: Beef, cerdo: Ham, pollo: Bird }
+const LABEL_ANIMAL = { vaca: 'Vaca', cerdo: 'Cerdo', pollo: 'Pollo' }
+const ORDEN_ANIMAL = ['vaca', 'cerdo', 'pollo']
 
 function VolverBtn() {
   const navigate = useNavigate()
@@ -57,7 +57,7 @@ export default function NuevaCompra() {
   const { user } = useContext(AuthContext)
 
   const [animalesDisponibles, setAnimalesDisponibles] = useState(null) // null = cargando
-  const [tipoAnimal, setTipoAnimal] = useState('res')
+  const [tipoAnimal, setTipoAnimal] = useState('vaca')
   const [status, setStatus] = useState('idle') // idle | loading | result
   const [compra, setCompra] = useState(null)
   const [error, setError] = useState(null)
@@ -115,6 +115,12 @@ export default function NuevaCompra() {
     setStatus('idle')
   }
 
+  async function refrescarCompra() {
+    if (!compra?.id) return
+    const detalle = await api.compras.detalle(compra.id)
+    setCompra(detalle)
+  }
+
   if (animalesDisponibles === null) {
     return (
       <div className="px-6 py-8">
@@ -162,7 +168,12 @@ export default function NuevaCompra() {
             </button>
           </div>
           <CompraResumen compra={compra} />
-          <CortesTable cortes={compra.cortes} />
+          <CortesTable
+            cortes={compra.cortes}
+            compra={compra}
+            editable
+            onCorteActualizado={refrescarCompra}
+          />
           <button
             onClick={() => generarListaPreciosPdf({ nombreCarniceria: user?.username ?? '', compra })}
             className="w-full mt-4 border border-gray-300 text-gray-700 rounded-lg px-4 py-3 text-base font-medium min-h-[44px] flex items-center justify-center gap-2"

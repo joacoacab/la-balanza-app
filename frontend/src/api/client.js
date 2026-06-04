@@ -15,18 +15,18 @@ async function request(path, options = {}) {
     headers['Authorization'] = `Token ${token}`
   }
 
-  const res = await fetch(path, { ...options, headers })
+  const response = await fetch(path, { ...options, headers })
 
-  if (!res.ok) {
-    const data = await res.json().catch(() => ({}))
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}))
     const err = new Error('API error')
-    err.status = res.status
+    err.status = response.status
     err.data = data
     throw err
   }
 
-  if (res.status === 204) return null
-  return res.json()
+  if (response.status === 204) return null
+  return response.json()
 }
 
 export const api = {
@@ -93,6 +93,13 @@ export const api = {
         body: JSON.stringify(datos),
       }),
     detalle: (id) => request(`/api/v1/compras/${id}/`),
+  },
+  compraCortes: {
+    editar: (compraId, corteId, datos) =>
+      request(`/api/v1/compras/${compraId}/cortes/${corteId}/`, {
+        method: 'PATCH',
+        body: JSON.stringify(datos),
+      }),
   },
   billing: {
     suscribir: (ciclo) =>

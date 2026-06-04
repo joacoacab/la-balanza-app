@@ -32,6 +32,11 @@ export default function HistorialDetalle() {
       })
   }, [id, navigate])
 
+  async function refrescarCompra() {
+    const detalle = await api.compras.detalle(id)
+    setCompra(detalle)
+  }
+
   return (
     <div className="px-6 py-8">
       <div className="max-w-sm mx-auto">
@@ -56,7 +61,12 @@ export default function HistorialDetalle() {
               {formatFecha(compra.fecha)}
             </h2>
             <CompraResumen compra={compra} />
-            <CortesTable cortes={compra.cortes} />
+            <CortesTable
+              cortes={compra.cortes}
+              compra={compra}
+              editable
+              onCorteActualizado={refrescarCompra}
+            />
             <button
               onClick={() => generarListaPreciosPdf({ nombreCarniceria: user?.username ?? '', compra })}
               className="w-full mt-4 border border-gray-300 text-gray-700 rounded-lg px-4 py-3 text-base font-medium min-h-[44px] flex items-center justify-center gap-2"

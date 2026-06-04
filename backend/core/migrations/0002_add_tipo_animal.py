@@ -12,8 +12,8 @@ class Migration(migrations.Migration):
             model_name="corte",
             name="tipo_animal",
             field=models.CharField(
-                choices=[("res", "Res"), ("cerdo", "Cerdo"), ("pollo", "Pollo")],
-                default="res",
+                choices=[("vaca", "Vaca"), ("cerdo", "Cerdo"), ("pollo", "Pollo")],
+                default="vaca",
                 max_length=10,
             ),
         ),
@@ -21,8 +21,8 @@ class Migration(migrations.Migration):
             model_name="compra",
             name="tipo_animal",
             field=models.CharField(
-                choices=[("res", "Res"), ("cerdo", "Cerdo"), ("pollo", "Pollo")],
-                default="res",
+                choices=[("vaca", "Vaca"), ("cerdo", "Cerdo"), ("pollo", "Pollo")],
+                default="vaca",
                 max_length=10,
             ),
         ),

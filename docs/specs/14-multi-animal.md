@@ -1,12 +1,12 @@
-# Spec 14 — Multi-animal (res, cerdo, pollo)
+# Spec 14 — Multi-animal (vaca, cerdo, pollo)
 
 ## Estado: BORRADOR
 
 ## Contexto
 
-La app actualmente solo modela compras de media res. La lógica de costeo (precio por kg, rendimiento, margen) es idéntica para cualquier animal: lo único que cambia es el tipo, el nombre de la unidad de compra y los cortes de la plantilla.
+La app actualmente solo modela compras de media vaca. La lógica de costeo (precio por kg, rendimiento, margen) es idéntica para cualquier animal: lo único que cambia es el tipo, el nombre de la unidad de compra y los cortes de la plantilla.
 
-Este spec agrega soporte para res, cerdo y pollo sin duplicar lógica. Cada carnicería puede operar con uno o más animales simultáneamente.
+Este spec agrega soporte para vaca, cerdo y pollo sin duplicar lógica. Cada carnicería puede operar con uno o más animales simultáneamente.
 
 ---
 
@@ -15,17 +15,17 @@ Este spec agrega soporte para res, cerdo y pollo sin duplicar lógica. Cada carn
 ### 1.1 Campo `tipo_animal` en `Corte`
 
 ```python
-TIPO_ANIMAL_CHOICES = [('res', 'Res'), ('cerdo', 'Cerdo'), ('pollo', 'Pollo')]
+TIPO_ANIMAL_CHOICES = [('vaca', 'Vaca'), ('cerdo', 'Cerdo'), ('pollo', 'Pollo')]
 
 tipo_animal = models.CharField(
     max_length=10,
     choices=TIPO_ANIMAL_CHOICES,
-    default='res',
+    default='vaca',
 )
 ```
 
 - Permite tener plantillas de cortes separadas por animal por carnicería.
-- La restricción `unique_corte_por_carniceria` pasa de `(carniceria, nombre)` a `(carniceria, nombre, tipo_animal)`. Un mismo nombre puede existir para animales distintos (ej. "Costillas" de res y "Costillas" de cerdo).
+- La restricción `unique_corte_por_carniceria` pasa de `(carniceria, nombre)` a `(carniceria, nombre, tipo_animal)`. Un mismo nombre puede existir para animales distintos (ej. "Costillas" de vaca y "Costillas" de cerdo).
 
 ### 1.2 Campo `tipo_animal` en `Compra`
 
@@ -33,7 +33,7 @@ tipo_animal = models.CharField(
 tipo_animal = models.CharField(
     max_length=10,
     choices=TIPO_ANIMAL_CHOICES,
-    default='res',
+    default='vaca',
 )
 ```
 
@@ -42,16 +42,16 @@ tipo_animal = models.CharField(
 
 ### 1.3 Migración de datos existentes
 
-- `Corte.tipo_animal` → `'res'` para todos los registros existentes (ya son cortes de res).
-- `Compra.tipo_animal` → `'res'` para todos los registros existentes.
+- `Corte.tipo_animal` → `'vaca'` para todos los registros existentes (ya son cortes de vaca).
+- `Compra.tipo_animal` → `'vaca'` para todos los registros existentes.
 
 ---
 
 ## 2. Cambios en `onboarding.py`
 
-### 2.1 `cargar_cortes_base` / `cargar_cortes_res`
+### 2.1 `cargar_cortes_base` / `cargar_cortes_vaca`
 
-La función existente se actualiza para incluir `tipo_animal='res'` al crear cada corte. La lógica de `get_or_create` permanece igual (idempotente). Se sigue llamando automáticamente en el registro y en el flujo Google.
+La función existente se actualiza para incluir `tipo_animal='vaca'` al crear cada corte. La lógica de `get_or_create` permanece igual (idempotente). Se sigue llamando automáticamente en el registro y en el flujo Google.
 
 ### 2.2 `cargar_cortes_cerdo(carniceria)` — nueva
 
@@ -112,7 +112,7 @@ Cada corte en la respuesta incluye el campo `tipo_animal`.
 
 ### 3.2 POST /api/v1/compras/
 
-Acepta `tipo_animal` en el body. Si se omite, default `'res'`.
+Acepta `tipo_animal` en el body. Si se omite, default `'vaca'`.
 
 ```json
 {
@@ -149,7 +149,7 @@ Incluye `tipo_animal` en la respuesta.
 
 **Lógica:**
 - Obtiene la carnicería del usuario autenticado.
-- Llama a la función correspondiente: `cargar_cortes_res`, `cargar_cortes_cerdo` o `cargar_cortes_pollo`.
+- Llama a la función correspondiente: `cargar_cortes_vaca`, `cargar_cortes_cerdo` o `cargar_cortes_pollo`.
 - Es idempotente: si ya existen los cortes, no hace nada.
 
 **Response 200:**
@@ -174,11 +174,11 @@ El mensaje y el botón "Empezar" se mantienen. Se agrega un selector de animales
 │  La Balanza                                                 │
 │                                                             │
 │  ¡Bienvenido!                                               │
-│  Res ya está listo. ¿Con qué otros animales trabajás?       │
+│  Vaca ya está listo. ¿Con qué otros animales trabajás?       │
 │                                                             │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐                  │
 │  │    🐄     │  │    🐷     │  │    🐔     │                  │
-│  │   Res    │  │  Cerdo   │  │  Pollo   │                  │
+│  │   Vaca    │  │  Cerdo   │  │  Pollo   │                  │
 │  │ ✓ activo │  │          │  │          │                  │
 │  └──────────┘  └──────────┘  └──────────┘                  │
 │  (no se puede  (seleccionable)(seleccionable)               │
@@ -190,7 +190,7 @@ El mensaje y el botón "Empezar" se mantienen. Se agrega un selector de animales
 ```
 
 **Comportamiento:**
-- Res aparece siempre seleccionado y deshabilitado (ya está cargado del registro).
+- Vaca aparece siempre seleccionado y deshabilitado (ya está cargado del registro).
 - El usuario puede seleccionar/deseleccionar Cerdo y Pollo.
 - Al presionar "Empezar":
   - Para cada animal extra seleccionado: llama `POST /api/v1/cortes/cargar-plantilla/` con ese `tipo_animal`.
@@ -216,11 +216,11 @@ Se agrega un selector de animal antes del formulario. El formulario (`CompraForm
 │  Animal                                                     │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐                  │
 │  │    🐄     │  │    🐷     │  │    🐔     │                  │
-│  │   Res    │  │  Cerdo   │  │  Pollo   │                  │
+│  │   Vaca    │  │  Cerdo   │  │  Pollo   │                  │
 │  │ ●        │  │          │  │          │                  │
 │  └──────────┘  └──────────┘  └──────────┘                  │
 │                                                             │
-│  Peso de la media res        ← label cambia según animal   │
+│  Peso de la media vaca        ← label cambia según animal   │
 │  [ _________ ] kg                                           │
 │                                                             │
 │  Precio de compra por kg                                    │
@@ -237,15 +237,15 @@ Se agrega un selector de animal antes del formulario. El formulario (`CompraForm
 
 | Animal | Label unidad de compra |
 |--------|------------------------|
-| Res    | "Peso de la media res" |
-| Cerdo  | "Peso de la media res" |
+| Vaca    | "Peso de la media vaca" |
+| Cerdo  | "Peso de la media vaca" |
 | Pollo  | "Peso del cajón"       |
 
 **Porcentajes default según animal:**
 
 | Animal | % Carne | % Hueso | % Grasa |
 |--------|---------|---------|---------|
-| Res    | 80      | 12      | 8       |
+| Vaca    | 80      | 12      | 8       |
 | Cerdo  | 75      | 15      | 10      |
 | Pollo  | 82      | 0       | 18      |
 
@@ -253,7 +253,7 @@ Se agrega un selector de animal antes del formulario. El formulario (`CompraForm
 - El selector muestra solo animales que el carnicero tiene activos (tiene al menos 1 corte de ese animal).
 - Al cambiar de animal, los porcentajes se resetean a los defaults del animal seleccionado. Los datos ya ingresados en el formulario se pierden.
 - El `tipo_animal` seleccionado se incluye en el body del `POST /api/v1/compras/`.
-- Si el carnicero solo tiene res, el selector no se muestra (comportamiento actual).
+- Si el carnicero solo tiene vaca, el selector no se muestra (comportamiento actual).
 
 ---
 
@@ -261,14 +261,14 @@ Se agrega un selector de animal antes del formulario. El formulario (`CompraForm
 
 Se agrega un sistema de tabs para filtrar cortes por animal.
 
-**Wireframe — carnicero con res y cerdo:**
+**Wireframe — carnicero con vaca y cerdo:**
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │  ← Volver                                                   │
 │  Mis cortes                                                  │
 │                                                             │
-│  [ Res ]  [ Cerdo ]              ← solo animales activos   │
+│  [ Vaca ]  [ Cerdo ]              ← solo animales activos   │
 │  ──────                                                     │
 │                                                             │
 │  Nalga            8%   52%  [Editar] [Quitar]               │
@@ -287,7 +287,7 @@ Se agrega un sistema de tabs para filtrar cortes por animal.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  [ Res ]  [ Cerdo ]                                         │
+│  [ Vaca ]  [ Cerdo ]                                         │
 │                                                             │
 │  ...lista de cortes...                                      │
 │                                                             │
@@ -307,7 +307,7 @@ Se agrega un sistema de tabs para filtrar cortes por animal.
 **Comportamiento:**
 - Al entrar a Mis Cortes, se llama `GET /api/v1/cortes/` sin filtro para obtener todos.
 - Los tabs se generan dinámicamente según los `tipo_animal` distintos presentes en la lista.
-- El tab activo por defecto es el primero (generalmente "Res").
+- El tab activo por defecto es el primero (generalmente "Vaca").
 - Al cambiar de tab, se filtra la lista en el frontend (sin nueva llamada a la API).
 - Al agregar un corte manual desde "Agregar corte", el nuevo corte hereda el `tipo_animal` del tab activo. El form de creación de corte incluye el animal como campo hidden.
 - "Agregar animal": solo aparece si hay animales no activos. Muestra los animales que no tienen cortes todavía. Al presionar "Cargar cortes de [animal]", llama `POST /api/v1/cortes/cargar-plantilla/` y recarga la lista.
@@ -317,15 +317,15 @@ Se agrega un sistema de tabs para filtrar cortes por animal.
 ## 5. Criterios de aceptación
 
 ### Modelo y migración
-- [ ] `Corte.tipo_animal` existe con choices `res`, `cerdo`, `pollo` y default `res`.
-- [ ] `Compra.tipo_animal` existe con choices `res`, `cerdo`, `pollo` y default `res`.
-- [ ] Todos los `Corte` preexistentes tienen `tipo_animal='res'` tras la migración.
-- [ ] Todas las `Compra` preexistentes tienen `tipo_animal='res'` tras la migración.
+- [ ] `Corte.tipo_animal` existe con choices `vaca`, `cerdo`, `pollo` y default `vaca`.
+- [ ] `Compra.tipo_animal` existe con choices `vaca`, `cerdo`, `pollo` y default `vaca`.
+- [ ] Todos los `Corte` preexistentes tienen `tipo_animal='vaca'` tras la migración.
+- [ ] Todas las `Compra` preexistentes tienen `tipo_animal='vaca'` tras la migración.
 - [ ] La constraint única de `Corte` es `(carniceria, nombre, tipo_animal)`.
 - [ ] Al crear una `Compra` de tipo `cerdo`, solo se copian los `CompraCorte` de cortes con `tipo_animal='cerdo'`.
 
 ### Onboarding
-- [ ] `cargar_cortes_base` / `cargar_cortes_res` crea cortes con `tipo_animal='res'`.
+- [ ] `cargar_cortes_base` / `cargar_cortes_vaca` crea cortes con `tipo_animal='vaca'`.
 - [ ] `cargar_cortes_cerdo` crea los 10 cortes de cerdo definidos en el spec con `tipo_animal='cerdo'`.
 - [ ] `cargar_cortes_pollo` crea los 7 cortes de pollo definidos en el spec con `tipo_animal='pollo'`.
 - [ ] Las tres funciones son idempotentes (llamarlas dos veces no duplica cortes).
@@ -342,7 +342,7 @@ Se agrega un sistema de tabs para filtrar cortes por animal.
 - [ ] `POST /api/v1/cortes/cargar-plantilla/` sin autenticación devuelve `401`.
 
 ### Frontend — Bienvenida
-- [ ] Res aparece seleccionado y no es deseleccionable.
+- [ ] Vaca aparece seleccionado y no es deseleccionable.
 - [ ] Cerdo y Pollo son seleccionables/deseleccionables.
 - [ ] Al presionar "Empezar" con Cerdo seleccionado, se llama `cargar-plantilla/` con `cerdo` antes de navegar.
 - [ ] Las llamadas para animales extra se hacen en paralelo.
@@ -354,7 +354,7 @@ Se agrega un sistema de tabs para filtrar cortes por animal.
 - [ ] Si el carnicero tiene cortes de un solo animal, el selector no se muestra.
 - [ ] Si tiene cortes de múltiples animales, aparece el selector.
 - [ ] Al cambiar de animal, los porcentajes se resetean a los valores default del animal.
-- [ ] El label del campo de peso cambia: "media res" para res/cerdo, "cajón" para pollo.
+- [ ] El label del campo de peso cambia: "media vaca" para vaca/cerdo, "cajón" para pollo.
 - [ ] El `tipo_animal` seleccionado se envía en el `POST /api/v1/compras/`.
 
 ### Frontend — Mis Cortes

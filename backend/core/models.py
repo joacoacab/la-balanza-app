@@ -7,9 +7,11 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
+from core.tenancy import TenantManager
+
 
 TIPO_ANIMAL_CHOICES = [
-    ("res", "Res"),
+    ("vaca", "Vaca"),
     ("cerdo", "Cerdo"),
     ("pollo", "Pollo"),
 ]
@@ -34,6 +36,8 @@ class Carniceria(models.Model):
 
 
 class Corte(models.Model):
+    tenant_lookup = "carniceria"
+
     carniceria = models.ForeignKey(
         Carniceria,
         on_delete=models.CASCADE,
@@ -42,7 +46,7 @@ class Corte(models.Model):
     tipo_animal = models.CharField(
         max_length=10,
         choices=TIPO_ANIMAL_CHOICES,
-        default="res",
+        default="vaca",
     )
     nombre = models.CharField(max_length=80)
     porcentaje_rendimiento = models.DecimalField(
@@ -60,6 +64,8 @@ class Corte(models.Model):
     )
     activo = models.BooleanField(default=True)
     orden = models.PositiveIntegerField(default=0)
+
+    objects = TenantManager()
 
     class Meta:
         ordering = ["orden", "nombre"]
@@ -89,6 +95,8 @@ class Corte(models.Model):
 
 
 class Compra(models.Model):
+    tenant_lookup = "carniceria"
+
     carniceria = models.ForeignKey(
         Carniceria,
         on_delete=models.CASCADE,
@@ -128,10 +136,12 @@ class Compra(models.Model):
     tipo_animal = models.CharField(
         max_length=10,
         choices=TIPO_ANIMAL_CHOICES,
-        default="res",
+        default="vaca",
     )
     notas = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    objects = TenantManager()
 
     class Meta:
         ordering = ["-fecha", "-created_at"]
@@ -212,8 +222,25 @@ class Compra(models.Model):
     def costo_por_kg_vendible(self):
         return self.costo_neto / self.kg_carne_vendible
 
+    @property
+    def kg_cortes_total(self):
+        total = Decimal("0")
+        for corte in self.cortes.all():
+            total += corte.kg_corte
+        return total
+
+    @property
+    def diferencia_kg(self):
+        return self.kg_cortes_total - self.kg_carne_vendible
+
+    @property
+    def diferencia_porcentaje(self):
+        return (self.diferencia_kg / self.kg_carne_vendible) * Decimal("100")
+
 
 class CompraCorte(models.Model):
+    tenant_lookup = "compra__carniceria"
+
     compra = models.ForeignKey(
         Compra,
         on_delete=models.CASCADE,
@@ -234,6 +261,8 @@ class CompraCorte(models.Model):
         validators=[MinValueValidator(Decimal("0"))],
     )
     orden = models.PositiveIntegerField(default=0)
+
+    objects = TenantManager()
 
     class Meta:
         ordering = ["orden", "nombre"]
@@ -351,7 +380,7 @@ class Suscripcion(models.Model):
     def puede_crear_compra(self, tipo_animal):
         """Devuelve (puede: bool, mensaje: str)."""
         if self.plan == "free":
-            if tipo_animal != "res":
+            if tipo_animal != "vaca":
                 return False, (
                     f"Tu plan Free no permite registrar compras de {tipo_animal}. "
                     "Actualizá a Pro para continuar."
