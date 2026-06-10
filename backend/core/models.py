@@ -34,6 +34,13 @@ class Carniceria(models.Model):
     def __str__(self):
         return self.nombre
 
+    @property
+    def animales_activos(self):
+        """Animales para los que existe al menos un corte activo."""
+        return sorted(set(
+            self.cortes.filter(activo=True).values_list("tipo_animal", flat=True)
+        ))
+
 
 class Corte(models.Model):
     tenant_lookup = "carniceria"

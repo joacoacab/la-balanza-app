@@ -5,9 +5,15 @@ export const AuthContext = createContext(null)
 
 const SESSION_KEY = 'lb_token'
 
+// localStorage: persiste entre pestañas y reinicios del browser.
+// Decisión de diseño: la app usa TokenAuthentication con Authorization header
+// (no cookie), por lo que no hay riesgo CSRF. Para un app B2B de uso diario
+// en móvil, la UX de "seguir logueado" tiene más valor que la protección
+// adicional de sessionStorage (que solo cubriría XSS del mismo origen, ya
+// mitigado por la política de mismo origen del bundle de Vite/Nginx).
 function restoreSession() {
   try {
-    const raw = sessionStorage.getItem(SESSION_KEY)
+    const raw = localStorage.getItem(SESSION_KEY)
     if (!raw) return null
     return JSON.parse(raw)
   } catch {
@@ -16,11 +22,11 @@ function restoreSession() {
 }
 
 function saveSession(token, user) {
-  sessionStorage.setItem(SESSION_KEY, JSON.stringify({ token, user }))
+  localStorage.setItem(SESSION_KEY, JSON.stringify({ token, user }))
 }
 
 function clearSession() {
-  sessionStorage.removeItem(SESSION_KEY)
+  localStorage.removeItem(SESSION_KEY)
 }
 
 const saved = restoreSession()

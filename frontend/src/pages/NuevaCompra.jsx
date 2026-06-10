@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Beef, Ham, Bird, Printer } from 'lucide-react'
 import { api } from '../api/client'
 import { AuthContext } from '../auth/AuthContext'
+import { useSuscripcion } from '../hooks/useSuscripcion'
 import CompraForm from '../components/CompraForm'
 import CompraResumen from '../components/CompraResumen'
 import CortesTable from '../components/CortesTable'
@@ -55,6 +56,7 @@ function AnimalSelector({ animales, seleccionado, onSeleccionar }) {
 export default function NuevaCompra() {
   const navigate = useNavigate()
   const { user } = useContext(AuthContext)
+  const { suscripcion } = useSuscripcion()
 
   const [animalesDisponibles, setAnimalesDisponibles] = useState(null) // null = cargando
   const [tipoAnimal, setTipoAnimal] = useState('vaca')
@@ -68,7 +70,7 @@ export default function NuevaCompra() {
       .listar()
       .then((cortes) => {
         const animales = ORDEN_ANIMAL.filter((a) => cortes.some((c) => c.tipo_animal === a))
-        setAnimalesDisponibles(animales.length > 0 ? animales : null)
+        setAnimalesDisponibles(animales)
         if (animales.length > 0) setTipoAnimal(animales[0])
       })
       .catch((err) => {
@@ -140,10 +142,16 @@ export default function NuevaCompra() {
           <h2 className="text-lg font-semibold text-gray-900 mb-2">
             Sin cortes configurados
           </h2>
-          <p className="text-gray-600 text-base">
-            Todavía no configuraste ningún corte. Los cortes determinan los
-            precios de venta.
+          <p className="text-gray-600 text-base mb-4">
+            No hay cortes cargados para ningún animal. Configurá tus cortes
+            antes de registrar una compra.
           </p>
+          <button
+            onClick={() => navigate('/cortes')}
+            className="bg-gray-900 text-white rounded-lg px-4 py-3 text-base font-medium min-h-[44px] w-full"
+          >
+            Ir a Cortes
+          </button>
         </div>
       </div>
     )
@@ -174,13 +182,23 @@ export default function NuevaCompra() {
             editable
             onCorteActualizado={refrescarCompra}
           />
-          <button
-            onClick={() => generarListaPreciosPdf({ nombreCarniceria: user?.username ?? '', compra })}
-            className="w-full mt-4 border border-gray-300 text-gray-700 rounded-lg px-4 py-3 text-base font-medium min-h-[44px] flex items-center justify-center gap-2"
-          >
-            <Printer size={18} />
-            Imprimir lista de precios
-          </button>
+          {suscripcion?.puede_ver_pdf ? (
+            <button
+              onClick={() => generarListaPreciosPdf({ nombreCarniceria: user?.username ?? '', compra })}
+              className="w-full mt-4 border border-gray-300 text-gray-700 rounded-lg px-4 py-3 text-base font-medium min-h-[44px] flex items-center justify-center gap-2"
+            >
+              <Printer size={18} />
+              Imprimir lista de precios
+            </button>
+          ) : (
+            <button
+              onClick={() => navigate('/planes')}
+              className="w-full mt-4 border border-gray-200 text-gray-400 rounded-lg px-4 py-3 text-base font-medium min-h-[44px] flex items-center justify-center gap-2"
+            >
+              <Printer size={18} />
+              Imprimir lista de precios — Solo Pro
+            </button>
+          )}
         </div>
       </div>
     )

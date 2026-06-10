@@ -62,3 +62,11 @@ class CargarPlantillaView(APIView):
         carniceria = request.user.carniceria
         _CARGADORES[tipo_animal](carniceria)
         return Response({"tipo_animal": tipo_animal, "cargados": True})
+
+
+class AnimalesActivosView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        carniceria = request.user.carniceria
+        return Response({"animales": carniceria.animales_activos})

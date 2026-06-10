@@ -10,6 +10,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 
 from core.models import Carniceria, Compra, CompraCorte, Corte
+from core.services.onboarding import cargar_cortes_base
 from users.models import User
 
 PAYLOAD_COMPRA = {
@@ -70,6 +71,7 @@ def test_listar_compras_aislamiento(client_usuario, compra_base, otro_usuario):
 
 @pytest.mark.django_db
 def test_crear_compra_porcentajes_validos(client_usuario, usuario):
+    cargar_cortes_base(usuario.carniceria)
     resp = client_usuario.post("/api/v1/compras/", PAYLOAD_COMPRA, format="json")
 
     assert resp.status_code == 201
@@ -121,7 +123,8 @@ def test_crear_compra_usuario_sin_suscripcion_falla_cerrado():
 # ── CA-08 ──────────────────────────────────────────────────────────────────────
 
 @pytest.mark.django_db
-def test_crear_compra_porcentajes_invalidos(client_usuario):
+def test_crear_compra_porcentajes_invalidos(client_usuario, usuario):
+    cargar_cortes_base(usuario.carniceria)
     payload = {**PAYLOAD_COMPRA, "porcentaje_grasa": "5.00"}  # suma = 95
 
     resp = client_usuario.post("/api/v1/compras/", payload, format="json")

@@ -13,6 +13,7 @@ from rest_framework.views import APIView
 
 from api.serializers.auth import RegistroSerializer
 from core.models import Carniceria
+from core.services.email import enviar_bienvenida
 from core.services.onboarding import cargar_cortes_base
 
 User = get_user_model()
@@ -26,6 +27,7 @@ class AuthRegistroView(APIView):
         serializer = RegistroSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         token = serializer.save()
+        enviar_bienvenida(token.user)
         return Response(
             {"token": token.key, "es_primera_vez": True, "is_staff": False},
             status=status.HTTP_201_CREATED,
@@ -105,6 +107,7 @@ class GoogleAuthView(APIView):
                 cargar_cortes_base(carniceria)
                 token = Token.objects.create(user=user)
             es_primera_vez = True
+            enviar_bienvenida(user)
 
         return Response({
             "token": token.key,

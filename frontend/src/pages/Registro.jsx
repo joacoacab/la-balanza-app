@@ -5,6 +5,7 @@ import { AuthContext } from '../auth/AuthContext'
 
 const DEFAULTS = {
   nombre_carniceria: '',
+  email: '',
   username: '',
   password: '',
   password_confirm: '',
@@ -64,6 +65,8 @@ export default function Registro() {
 
   function validate() {
     if (!form.nombre_carniceria.trim()) return 'El nombre de la carnicería es requerido.'
+    if (!form.email.trim()) return 'El email es requerido.'
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) return 'Ingresá un email válido.'
     if (!form.username.trim()) return 'El usuario es requerido.'
     if (/\s/.test(form.username)) return 'El usuario no puede contener espacios.'
     if (!form.password) return 'La contraseña es requerida.'
@@ -84,6 +87,7 @@ export default function Registro() {
     try {
       const { es_primera_vez, is_staff } = await registrar({
         nombre_carniceria: form.nombre_carniceria.trim(),
+        email: form.email.trim().toLowerCase(),
         username: form.username.trim(),
         password: form.password,
         password_confirm: form.password_confirm,
@@ -100,6 +104,8 @@ export default function Registro() {
         setError(data.non_field_errors[0])
       } else if (data.nombre_carniceria) {
         setError(data.nombre_carniceria[0])
+      } else if (data.email) {
+        setError(data.email[0])
       } else {
         setError('Error de conexión. Verificá tu red e intentá de nuevo.')
       }
@@ -136,6 +142,24 @@ export default function Registro() {
               disabled={loading}
               value={form.nombre_carniceria}
               onChange={(e) => setField('nombre_carniceria', e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-gray-900 disabled:bg-gray-100"
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="reg-email"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Email
+            </label>
+            <input
+              id="reg-email"
+              type="email"
+              autoComplete="email"
+              disabled={loading}
+              value={form.email}
+              onChange={(e) => setField('email', e.target.value)}
               className="w-full border border-gray-300 rounded-lg px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-gray-900 disabled:bg-gray-100"
             />
           </div>

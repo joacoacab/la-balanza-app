@@ -8,7 +8,7 @@ POSTGRES_DB ?= labalanza
 BACKUP_DIR ?= backups
 BACKUP_FILE ?= $(BACKUP_DIR)/labalanza_$(shell date +%Y%m%d_%H%M%S).sql
 
-.PHONY: help up down restart ps logs logs-web logs-frontend logs-db migrate makemigrations shell check test build-frontend build-frontend-temp clean-frontend-dist backup-db restore-db
+.PHONY: help up down restart ps logs logs-web logs-frontend logs-db migrate makemigrations shell check test build-frontend build-frontend-docker clean-frontend-dist backup-db restore-db
 
 help:
 	@echo "Comandos disponibles:"
@@ -25,8 +25,8 @@ help:
 	@echo "  make shell                 Abre shell Django dentro del contenedor web"
 	@echo "  make check                 Corre manage.py check local"
 	@echo "  make test                  Corre tests backend desde host contra DB Docker"
-	@echo "  make build-frontend        Build normal del frontend"
-	@echo "  make build-frontend-temp   Build frontend a /tmp si dist local esta bloqueado"
+	@echo "  make build-frontend        Build del frontend (requiere Node local)"
+	@echo "  make build-frontend-docker Build del frontend via Docker con permisos correctos"
 	@echo "  make clean-frontend-dist   Borra frontend/dist generado"
 	@echo "  make backup-db             Genera backup SQL en backups/"
 	@echo "  make restore-db FILE=...   Restaura backup SQL"
@@ -74,8 +74,16 @@ test:
 build-frontend:
 	cd frontend && npm run build
 
-build-frontend-temp:
-	cd frontend && npm run build -- --outDir /tmp/la-balanza-vite-build --emptyOutDir
+# Alternativa Docker: corre el build dentro del contenedor con el UID/GID del
+# host para que frontend/dist quede con permisos del usuario actual (no root
+# ni nobody). Usar si no tenés Node instalado localmente.
+build-frontend-docker:
+	docker run --rm \
+		--user $(shell id -u):$(shell id -g) \
+		-v $(PWD)/frontend:/app \
+		-w /app \
+		node:20-alpine \
+		sh -c "npm ci && npm run build"
 
 clean-frontend-dist:
 	rm -rf frontend/dist

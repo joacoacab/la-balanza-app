@@ -13,6 +13,7 @@ User = get_user_model()
 class RegistroSerializer(serializers.Serializer):
     nombre_carniceria = serializers.CharField(max_length=120)
     username = serializers.CharField(max_length=150)
+    email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
     password_confirm = serializers.CharField(write_only=True)
 
@@ -20,6 +21,11 @@ class RegistroSerializer(serializers.Serializer):
         if User.objects.filter(username=value).exists():
             raise serializers.ValidationError("Ya existe un usuario con ese nombre.")
         return value
+
+    def validate_email(self, value):
+        if User.objects.filter(email__iexact=value).exists():
+            raise serializers.ValidationError("Ya existe una cuenta con ese email.")
+        return value.lower()
 
     def validate_password(self, value):
         try:
@@ -39,6 +45,7 @@ class RegistroSerializer(serializers.Serializer):
         with transaction.atomic():
             user = User.objects.create_user(
                 username=validated_data["username"],
+                email=validated_data["email"],
                 password=validated_data["password"],
             )
             carniceria = Carniceria.objects.create(

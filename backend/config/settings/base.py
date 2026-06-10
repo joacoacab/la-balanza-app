@@ -85,6 +85,22 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 GOOGLE_CLIENT_ID = config("GOOGLE_CLIENT_ID", default="")
 
+# Email — usar EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend en prod.
+# En desarrollo el backend console imprime en stdout sin enviar nada.
+EMAIL_BACKEND = config(
+    "EMAIL_BACKEND",
+    default="django.core.mail.backends.console.EmailBackend",
+)
+EMAIL_HOST = config("EMAIL_HOST", default="")
+EMAIL_PORT = config("EMAIL_PORT", default=587, cast=int)
+EMAIL_USE_TLS = config("EMAIL_USE_TLS", default=True, cast=bool)
+EMAIL_HOST_USER = config("EMAIL_HOST_USER", default="")
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
+DEFAULT_FROM_EMAIL = config(
+    "DEFAULT_FROM_EMAIL",
+    default="La Balanza <no-reply@labalanza.siracnetwork.com>",
+)
+
 MP_ACCESS_TOKEN = config("MP_ACCESS_TOKEN", default="")
 MP_WEBHOOK_SECRET = config("MP_WEBHOOK_SECRET", default="")
 APP_URL = config("APP_URL", default="http://localhost:5173")

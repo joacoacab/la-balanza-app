@@ -49,4 +49,16 @@ class PuedeCrearCompra(BasePermission):
                 }
             )
 
+        if tipo_animal not in carniceria.animales_activos:
+            raise PermissionDenied(
+                {
+                    "error": "modulo_inactivo",
+                    "mensaje": (
+                        f"No tenés cortes configurados para {tipo_animal}. "
+                        "Agregá cortes antes de crear una compra."
+                    ),
+                    "accion": "ir_a_cortes",
+                }
+            )
+
         return True

@@ -1,4 +1,4 @@
-// El token vive solo en memoria. Reload = logout (ver deuda técnica en spec 05).
+// Token en memoria para el request actual; restaurado desde localStorage al iniciar.
 let token = null
 
 export function setToken(t) {
@@ -51,6 +51,7 @@ export const api = {
   },
   cortes: {
     listar: () => request('/api/v1/cortes/'),
+    animales: () => request('/api/v1/cortes/animales/'),
     crear: (datos) =>
       request('/api/v1/cortes/', {
         method: 'POST',

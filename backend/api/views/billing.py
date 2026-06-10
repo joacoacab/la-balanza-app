@@ -11,6 +11,7 @@ from rest_framework.views import APIView
 from rest_framework import status
 
 from core.models import Carniceria, PlanPrecio, Suscripcion
+from core.services.email import enviar_activacion_pro
 
 logger = logging.getLogger(__name__)
 
@@ -83,6 +84,9 @@ class SuscribirView(APIView):
         if settings.DEBUG and settings.MP_MOCK:
             suscripcion.ciclo = ciclo
             suscripcion.save(update_fields=["ciclo"])
+            suscripcion.activar_pro(ciclo=ciclo, fecha_inicio=date.today())
+            suscripcion.refresh_from_db()
+            enviar_activacion_pro(request.user, suscripcion.fecha_vencimiento)
             init_point = f"{settings.APP_URL}/planes/confirmacion?status=approved&mock=true"
             return Response({"init_point": init_point})
 
@@ -146,6 +150,7 @@ class BillingEstadoView(APIView):
             "ciclo": suscripcion.ciclo,
             "estado": suscripcion.estado,
             "fecha_vencimiento": suscripcion.fecha_vencimiento,
+            "puede_ver_pdf": suscripcion.puede_ver_pdf,
         })
 
 
@@ -236,6 +241,8 @@ class MercadoPagoWebhookView(APIView):
                 fecha_inicio = date.today()
 
             suscripcion.activar_pro(ciclo=suscripcion.ciclo, fecha_inicio=fecha_inicio)
+            suscripcion.refresh_from_db()
+            enviar_activacion_pro(suscripcion.carniceria.user, suscripcion.fecha_vencimiento)
 
         elif mp_status in ("paused", "cancelled"):
             suscripcion.estado = "cancelada"
