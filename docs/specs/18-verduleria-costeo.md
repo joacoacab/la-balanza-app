@@ -278,3 +278,87 @@ Esta spec pasa a `APROBADO` cuando:
 - No renombrar modelos centrales todavia si no hace falta para entregar MVP.
 - Considerar una capa de "modulo" que defina labels, defaults, plantillas y reglas.
 - Mantener compatibilidad con compras historicas de Vaca/Cerdo/Pollo.
+
+## 11. Hipotesis de logica por modulo
+
+### 11.1 Carne / Res / Pollo
+
+- En carne (media res o pieza) el costo base se calcula a nivel de compra y se distribuye uniformemente por kg vendible.
+- Esto esta bien: el costo minimo puede ser igual para todos los cortes de la misma compra.
+- La discriminacion entre cortes debe hacerse en el margen y en la categoria de producto:
+  - algunos cortes son premium y tienen mayor margen.
+  - otros cortes son populares y tienen margen mas bajo.
+- Pollo y res pueden seguir la misma logica que la carniceria actual, con plantillas de cortes independientes por tipo de animal.
+- El cambio principal es que cada corte puede tener su propio `margen_porcentaje` y su posicionamiento comercial, sin alterar el costo global.
+- Para pollo, la diferencia puede ser solo de nombres/plantilla de cortes y de porcentajes de rendimiento, no de la formula de costo.
+
+### 11.2 Verduleria
+
+- Verduleria requiere validar si el MVP debe usar:
+  - compra por cajon/bolsa/bulto/kilo/unidad,
+  - venta por kilo/unidad/paquete/atado/combo,
+  - merma por producto o por compra,
+  - recupero de remates/ofertas.
+- El modelo minimo candidato es:
+  - `ProductoVerduleria` con `nombre`, `categoria`, `unidad_compra_default`, `unidad_venta_default`, `merma_porcentaje_default`, `margen_porcentaje_default`, `activo`.
+  - `CompraProducto` con `producto`, `cantidad_compra`, `unidad_compra`, `peso_estimado_kg`, `peso_real_kg`, `costo_total`, `flete_total`, `otros_costos`, `merma_porcentaje`, `recupero`, `margen_porcentaje`.
+- Formula candidata para un producto de verduleria:
+  - `costo_compra_total = costo_total + flete_total + otros_costos`
+  - `costo_neto = costo_compra_total - recupero`
+  - `kg_vendibles = peso_real_kg * (1 - merma_porcentaje / 100)`
+  - `precio_minimo_kg = costo_neto / kg_vendibles`
+  - `precio_sugerido_kg = precio_minimo_kg * (1 + margen_porcentaje / 100)`
+- Si la venta no es por kg, se agrega un factor de conversion `kg_por_unidad` o se modela `unidad_venta`.
+- En verduleria la merma, el flete y el recupero son variables que deben validarse con el usuario real antes de implementar.
+
+### 11.3 Reglas de diseño
+
+- No copiar literalmente la logica de carniceria para verduleria: compartir calculos comunes solo si el dominio es el mismo.
+- Mantener compatibilidad con compras historicas de Vaca/Cerdo/Pollo.
+- No renombrar modelos centrales todavia si no hace falta para entregar el MVP.
+- Considerar que el modulo es una capa de configuracion que define labels, defaults, plantillas y reglas.
+
+## 12. Agenda de entrevistas
+
+### 12.1 Entrevista con un carnicero
+
+Objetivo: validar la logica de costo y margen para carne, res y pollo.
+
+Preguntas clave:
+
+- Cuando compra una media res o un pollo, que datos registra primero?
+- Como calcula el costo por kg vendible? usa precio del animal completo o ajusta por pesos reales?
+- El costo minimo se aplica igual a todos los cortes de la misma compra?
+- Como define si un corte es premium o popular? eso cambia solo el margen?
+- Cambia el margen segun temporada, edad del animal o demanda?
+- Usa formulas distintas para vaca, cerdo y pollo o el mismo metodo general?
+- Necesita ver el precio por kg y tambien el precio final por corte?
+- Prefiere ajustar solo el margen en cada corte, o tambien los kilos de rendimiento por corte?
+
+### 12.2 Entrevista con un verdulero
+
+Objetivo: documentar la logica de compra, merma y precio de verduleria.
+
+Preguntas clave:
+
+- Que unidad de compra usa para cada producto (cajon, bolsa, bulto, kilo, unidad)?
+- Que unidad de venta usa mas frecuentemente (kilo, unidad, paquete, atado, combo)?
+- Como calcula el costo real de un producto cuando lo compra por cajon o bolsa?
+- Registra peso estimado, peso real, cantidad de unidades y/o precio total?
+- El flete lo reparte entre todos los productos o lo absorbe en general?
+- La merma la estima antes de vender o la mide despues?
+- Que hace con producto maduro o golpeado: lo remata, lo regala, lo mezcla en ofertas?
+- Recupera algo de la merma en remates/ofertas? como lo contabiliza?
+- Usa un margen fijo por producto o por categoria?
+- En que casos baja el precio? cuando vence, cuando hay exceso de stock, cuando hay comparacion con la competencia?
+- Necesita una lista de precios imprimible o una guia rapida de precios sugeridos?
+
+## 13. Proximo paso inmediato
+
+- [ ] Agendar la entrevista con un carnicero real.
+- [ ] Agendar la entrevista con un verdulero real.
+- [ ] Registrar las respuestas de ambas entrevistas en este spec.
+- [ ] Validar si pollo se maneja igual que res o requiere ajustes.
+- [ ] Definir si el MVP de verduleria incluye venta por unidad/combo o solo por kg.
+- [ ] Definir si flete y recupero entran en la version inicial.
+- [ ] Una vez confirmado, aprobar esta spec y pasar a implementacion.
