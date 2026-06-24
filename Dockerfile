@@ -2,7 +2,7 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-RUN addgroup --system appuser && adduser --system --home /home/appuser --create-home --ingroup appuser appuser
+RUN addgroup --system appuser && adduser --system --home /home/appuser --ingroup appuser appuser
 
 COPY requirements/ requirements/
 
