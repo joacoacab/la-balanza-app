@@ -16,47 +16,25 @@ function fmtKg(valor) {
   return `${n.toFixed(1)} kg`
 }
 
-function fmtPorcentaje(valor) {
-  const n = numero(valor)
-  if (n === null) return '-'
-  return `${n.toFixed(1)}%`
-}
-
 export default function CompraResumen({ compra }) {
-  const kgCortesTotal = numero(compra.kg_cortes_total)
+  const costoTotal = numero(compra.costo_total)
+  const costoNeto = numero(compra.costo_neto)
+  const mostrarCostoNeto =
+    costoNeto !== null && costoTotal !== null && Math.abs(costoNeto - costoTotal) >= 1
+
   const diferenciaKg = numero(compra.diferencia_kg)
-  const diferenciaPorcentaje = numero(compra.diferencia_porcentaje)
-  const tieneMetricasDespiece =
-    kgCortesTotal !== null ||
-    diferenciaKg !== null ||
-    diferenciaPorcentaje !== null
-  const diferenciaRelevante =
-    Math.abs(diferenciaKg ?? 0) >= 0.1 ||
-    Math.abs(diferenciaPorcentaje ?? 0) >= 0.5
+  const diferenciaRelevante = Math.abs(diferenciaKg ?? 0) >= 0.1
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-4 mb-6">
       <h2 className="text-base font-semibold text-gray-900 mb-3">Resumen</h2>
       <dl className="space-y-2">
-        <Fila
-          label="Peso media vaca"
-          valor={fmtKg(compra.peso_media_res)}
-        />
+        <Fila label="Peso media vaca" valor={fmtKg(compra.peso_media_res)} />
         <Fila label="Costo total" valor={`$${fmt(compra.costo_total)}`} />
-        <Fila label="Costo neto" valor={`$${fmt(compra.costo_neto)}`} />
-        <Fila
-          label="Kg vendibles"
-          valor={fmtKg(compra.kg_carne_vendible)}
-        />
-        {tieneMetricasDespiece && (
-          <>
-            <Fila label="Kg en cortes" valor={fmtKg(compra.kg_cortes_total)} />
-            <Fila
-              label="Diferencia"
-              valor={`${fmtKg(compra.diferencia_kg)} / ${fmtPorcentaje(compra.diferencia_porcentaje)}`}
-            />
-          </>
+        {mostrarCostoNeto && (
+          <Fila label="Costo neto (c/grasa)" valor={`$${fmt(compra.costo_neto)}`} />
         )}
+        <Fila label="Carne vendible" valor={fmtKg(compra.kg_carne_vendible)} />
         <Fila
           label="Costo/kg vendible"
           valor={`$${fmt(compra.costo_por_kg_vendible)}/kg`}
@@ -65,13 +43,18 @@ export default function CompraResumen({ compra }) {
       {diferenciaRelevante && (
         <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
           <p className="text-sm text-amber-900">
-            Atención: los cortes asignados difieren de la carne vendible por{' '}
-            <span className="font-semibold">{fmtKg(compra.diferencia_kg)}</span>
-            {' / '}
-            <span className="font-semibold">
-              {fmtPorcentaje(compra.diferencia_porcentaje)}
-            </span>
-            .
+            {diferenciaKg > 0
+              ? <>
+                  Hay <span className="font-semibold">{fmtKg(diferenciaKg)}</span> de más
+                  asignados en los cortes. Ajustá los kg de cada corte hasta llegar a{' '}
+                  <span className="font-semibold">{fmtKg(compra.kg_carne_vendible)}</span> en total.
+                </>
+              : <>
+                  Faltan <span className="font-semibold">{fmtKg(Math.abs(diferenciaKg))}</span> por
+                  asignar. Ajustá los kg de los cortes hasta llegar a{' '}
+                  <span className="font-semibold">{fmtKg(compra.kg_carne_vendible)}</span> en total.
+                </>
+            }
           </p>
         </div>
       )}
