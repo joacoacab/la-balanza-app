@@ -43,9 +43,9 @@ export default function SuscripcionConfirmacion() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-6">
         <div className="max-w-sm w-full text-center">
           <p className="text-4xl mb-4">✓</p>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">
+          <h1 className="text-xl font-bold text-gray-900 mb-2">
             Suscripción activada correctamente (modo prueba)
-          </h2>
+          </h1>
           <button
             onClick={() => navigate('/dashboard')}
             className="mt-6 bg-blue-600 text-white rounded-lg px-8 py-3 text-sm font-semibold min-h-[44px]"
@@ -69,7 +69,7 @@ export default function SuscripcionConfirmacion() {
         {estado && esPro && (
           <div>
             <p className="text-4xl mb-4">✓</p>
-            <h2 className="text-xl font-bold text-gray-900 mb-2">¡Suscripción activa!</h2>
+            <h1 className="text-xl font-bold text-gray-900 mb-2">¡Suscripción activa!</h1>
             <p className="text-sm text-gray-600 mb-6">
               Ya podés usar todas las funciones de La Balanza Pro.
             </p>
@@ -84,7 +84,7 @@ export default function SuscripcionConfirmacion() {
 
         {estado && !esPro && intentos >= MAX_INTENTOS && (
           <div>
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Procesando pago...</h2>
+            <h1 className="text-xl font-bold text-gray-900 mb-2">Procesando pago...</h1>
             <p className="text-sm text-gray-600 mb-6">
               Estamos verificando tu pago. Puede demorar unos minutos en acreditarse.
             </p>

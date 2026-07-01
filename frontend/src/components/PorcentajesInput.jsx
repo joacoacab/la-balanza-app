@@ -17,8 +17,14 @@ export default function PorcentajesInput({ values, onChange, disabled }) {
       <div className="grid grid-cols-3 gap-2">
         {CAMPOS.map(({ field, label }) => (
           <div key={field}>
-            <label className="block text-xs text-gray-500 mb-1">{label}</label>
+            <label
+              htmlFor={`porcentaje-${field}`}
+              className="block text-xs text-gray-500 mb-1"
+            >
+              {label}
+            </label>
             <input
+              id={`porcentaje-${field}`}
               type="number"
               inputMode="decimal"
               min="0"

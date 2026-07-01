@@ -77,13 +77,26 @@ export default function AdminClienteDetalle() {
   }
 
   if (cargando) return <div className="px-6 py-8 text-gray-500">Cargando...</div>
-  if (errorCarga) return <div className="px-6 py-8 text-red-500">{errorCarga}</div>
+  if (errorCarga) {
+    return (
+      <div className="px-6 py-8">
+        <button
+          onClick={() => navigate('/admin-saas/')}
+          className="text-base text-gray-700 font-medium mb-6 flex items-center gap-1 min-h-[44px]"
+        >
+          ← Volver a clientes
+        </button>
+        <p className="text-red-500">{errorCarga}</p>
+      </div>
+    )
+  }
 
   const s = cliente.suscripcion
   const nuevaFechaExtender = calcularNuevaFecha(s.fecha_vencimiento, s.estado, diasExtender)
 
   return (
     <div className="px-6 py-8 max-w-2xl mx-auto">
+      <h1 className="sr-only">Detalle de cliente</h1>
       <button
         onClick={() => navigate('/admin-saas/')}
         className="text-base text-gray-700 font-medium mb-6 flex items-center gap-1 min-h-[44px]"
@@ -132,8 +145,11 @@ export default function AdminClienteDetalle() {
           <h4 className="font-medium text-gray-900 mb-3">Asignar Pro</h4>
           <div className="space-y-3 mb-4">
             <div>
-              <label className="text-xs text-gray-500 block mb-1">Ciclo</label>
+              <label htmlFor="ciclo-asignar" className="text-xs text-gray-500 block mb-1">
+                Ciclo
+              </label>
               <select
+                id="ciclo-asignar"
                 value={cicloAsignar}
                 onChange={(e) => setCicloAsignar(e.target.value)}
                 className="w-full border border-gray-200 rounded px-2 py-1.5 text-sm"
@@ -146,8 +162,11 @@ export default function AdminClienteDetalle() {
               </select>
             </div>
             <div>
-              <label className="text-xs text-gray-500 block mb-1">Fecha de vencimiento</label>
+              <label htmlFor="fecha-venc-asignar" className="text-xs text-gray-500 block mb-1">
+                Fecha de vencimiento
+              </label>
               <input
+                id="fecha-venc-asignar"
                 type="date"
                 value={fechaVencAsignar}
                 onChange={(e) => setFechaVencAsignar(e.target.value)}

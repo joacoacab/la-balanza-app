@@ -43,9 +43,14 @@ export default function CorteFormModal({ corte, onGuardar, onCancelar, guardando
   const mensajeError = localError || error
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center px-6 z-50">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="corte-form-modal-title"
+      className="fixed inset-0 bg-black/50 flex items-center justify-center px-6 z-50"
+    >
       <div className="bg-white rounded-xl w-full max-w-sm p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-5">
+        <h2 id="corte-form-modal-title" className="text-lg font-semibold text-gray-900 mb-5">
           {corte ? 'Editar corte' : 'Nuevo corte'}
         </h2>
 

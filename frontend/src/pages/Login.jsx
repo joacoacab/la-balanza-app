@@ -31,18 +31,23 @@ export default function Login() {
   googleCallbackRef.current = handleGoogleCallback
 
   useEffect(() => {
-    function initGoogle() {
-      window.google.accounts.id.initialize({
-        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
-        callback: (resp) => googleCallbackRef.current(resp),
-      })
+    function renderGoogleButton() {
+      if (!window.google || !googleBtnRef.current) return
       window.google.accounts.id.renderButton(googleBtnRef.current, {
         theme: 'outline',
         size: 'large',
         text: 'continue_with',
         locale: 'es',
-        width: googleBtnRef.current?.offsetWidth || 360,
+        width: googleBtnRef.current.offsetWidth || 360,
       })
+    }
+
+    function initGoogle() {
+      window.google.accounts.id.initialize({
+        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+        callback: (resp) => googleCallbackRef.current(resp),
+      })
+      renderGoogleButton()
     }
 
     if (window.google) {
@@ -50,6 +55,11 @@ export default function Login() {
     } else {
       window.onGoogleLibraryLoad = initGoogle
     }
+
+    const resizeObserver = new ResizeObserver(() => renderGoogleButton())
+    if (googleBtnRef.current) resizeObserver.observe(googleBtnRef.current)
+
+    return () => resizeObserver.disconnect()
   }, [])
 
   async function handleSubmit(e) {
@@ -112,7 +122,7 @@ export default function Login() {
           </div>
 
           {error && (
-            <p className="text-red-600 text-sm">{error}</p>
+            <p role="alert" className="text-red-600 text-sm">{error}</p>
           )}
 
           <button

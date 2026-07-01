@@ -67,7 +67,7 @@ function TabClientes({ clientes }) {
           {clientes.map((c) => (
             <tr key={c.id} className="border-b border-gray-100">
               <td className="py-3 pr-4 font-medium text-gray-900">{c.nombre}</td>
-              <td className="py-3 pr-4 text-gray-600">{c.usuario_email}</td>
+              <td className="py-3 pr-4 text-gray-600">{c.usuario_email || '—'}</td>
               <td className="py-3 pr-4 text-gray-600">{c.fecha_registro}</td>
               <td className="py-3 pr-4">
                 <PlanBadgeAdmin plan={c.plan} />
@@ -151,6 +151,7 @@ function TabConfiguracion() {
                 <td className="py-3 px-4">
                   <input
                     type="number"
+                    aria-label={`Precio ${LABEL[p.ciclo] ?? p.ciclo}`}
                     value={p.precio}
                     onChange={(e) => handlePrecioChange(p.ciclo, e.target.value)}
                     className="w-full border border-gray-200 rounded px-2 py-1 text-sm"
@@ -220,7 +221,7 @@ export default function AdminPanel() {
     <div className="px-6 py-8 max-w-4xl mx-auto">
       <h1 className="text-xl font-bold text-gray-900 mb-6">Panel Admin</h1>
 
-      <div className="flex gap-1 mb-6 border-b border-gray-200">
+      <div role="tablist" className="flex gap-1 mb-6 border-b border-gray-200">
         {[
           { id: 'metricas', label: 'Métricas' },
           { id: 'clientes', label: 'Clientes' },
@@ -228,6 +229,8 @@ export default function AdminPanel() {
         ].map(({ id, label }) => (
           <button
             key={id}
+            role="tab"
+            aria-selected={tab === id}
             onClick={() => setTab(id)}
             className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
               tab === id

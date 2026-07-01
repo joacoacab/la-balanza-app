@@ -38,18 +38,23 @@ export default function Registro() {
   googleCallbackRef.current = handleGoogleCallback
 
   useEffect(() => {
-    function initGoogle() {
-      window.google.accounts.id.initialize({
-        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
-        callback: (resp) => googleCallbackRef.current(resp),
-      })
+    function renderGoogleButton() {
+      if (!window.google || !googleBtnRef.current) return
       window.google.accounts.id.renderButton(googleBtnRef.current, {
         theme: 'outline',
         size: 'large',
         text: 'continue_with',
         locale: 'es',
-        width: googleBtnRef.current?.offsetWidth || 360,
+        width: googleBtnRef.current.offsetWidth || 360,
       })
+    }
+
+    function initGoogle() {
+      window.google.accounts.id.initialize({
+        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+        callback: (resp) => googleCallbackRef.current(resp),
+      })
+      renderGoogleButton()
     }
 
     if (window.google) {
@@ -57,6 +62,11 @@ export default function Registro() {
     } else {
       window.onGoogleLibraryLoad = initGoogle
     }
+
+    const resizeObserver = new ResizeObserver(() => renderGoogleButton())
+    if (googleBtnRef.current) resizeObserver.observe(googleBtnRef.current)
+
+    return () => resizeObserver.disconnect()
   }, [])
 
   function setField(field, value) {

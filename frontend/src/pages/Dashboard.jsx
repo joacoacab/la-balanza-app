@@ -36,6 +36,7 @@ export default function Dashboard() {
   return (
     <div className="px-6 py-8">
       <div className="max-w-sm mx-auto">
+        <h1 className="sr-only">Dashboard</h1>
         <p className="text-gray-500 text-base mb-8">
           Hola, {user?.username}
         </p>
