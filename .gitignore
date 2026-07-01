@@ -35,3 +35,7 @@ htmlcov/
 # OS
 .DS_Store
 Thumbs.db
+.claude/skills/front-audit/test-credentials.md
+
+# Front audit screenshots (reportes .md sí se versionan)
+audit-output/**/*.png
